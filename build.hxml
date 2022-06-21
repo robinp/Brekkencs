@@ -1,11 +1,11 @@
 -cp src
 -main Main
 
--lib hlsdl
+#-lib hlsdl
 -lib heaps
 -lib haxeui-core
 -lib haxeui-heaps
 
 -D resourcesPath=assets
 
--hl out/Main.hl
+-js out/Main.js
