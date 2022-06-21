@@ -6,8 +6,8 @@ class Main {
         Toolkit.init();
         var app = new HaxeUIApp();
         app.ready(function() {
-          app.addComponent(new MainView());
-          app.start();
+            app.addComponent(new MainView());
+            app.start();
         });
         trace("Hello World");
     }
