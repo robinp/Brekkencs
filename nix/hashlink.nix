@@ -11,6 +11,7 @@
 , sqlite
 , mbedtls
 , libuv
+, libGL
 , libGLU
 }:
 
@@ -26,7 +27,9 @@ stdenv.mkDerivation rec {
     sha256 = "AiUGhTxz4Pkrks4oE+SAuAQPMuC5T2B6jo3Jd3sNrkQ=";
   };
 
-  buildInputs = [ libpng libjpeg_turbo libvorbis openal SDL2 mbedtls libuv libGLU pcre sqlite ];
+  buildInputs = [ libpng libjpeg_turbo libvorbis openal SDL2 mbedtls libuv libGL libGLU pcre sqlite ];
+
+  patches = [ ./hashlink.patch ];
 
   makeFlags = [ "PREFIX=$(out)" ];
 
