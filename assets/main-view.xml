@@ -5,8 +5,13 @@
         }
     </style>
     <hbox>
-        <button text="Click Me!" id="button1" style="color: red;" />
-        <button text="Click Me!" id="button2" style="color: green;" />
-        <button text="Click Me!" onclick="this.text='Thanks!'" style="color: blue;" />
-    </hbox>    
+        <button text="Don't Click Me!" id="button1" style="color: red;" />
+        <button text="Kick Me!" id="button2" style="color: green;" />
+        <button text="Click Me!" onclick="this.text='TAnks!'" style="color: blue;" />
+    </hbox>
+    <hbox>
+        <TextField id="t1" placeholder="hello" text="Hello" />
+        <Label text="${t1.text}" />
+    </hbox>
+    <compy wat="foo" />
 </vbox>

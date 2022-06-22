@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module>
+    <components>
+        <component package="my" />
+        <!-- alternative method for entire package (without aliases)
+        <component package="custom" />
+        -->
+    </components>
+</module>

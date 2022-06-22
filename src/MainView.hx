@@ -6,8 +6,9 @@ class MainView extends VBox {
     public function new() {
         super();
         button1.onClick = function(e) {
-            button1.text = "Thanks!";
+            button1.text = "No Thanks!";
         }
+        addComponent(new my.Compy());
     }
 
     @:bind(button2, MouseEvent.CLICK)
