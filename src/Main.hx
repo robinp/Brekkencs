@@ -1,6 +1,8 @@
 import haxe.ui.HaxeUIApp;
 import haxe.ui.Toolkit;
 
+import rts.DataDefs;
+
 class Main {
     static public function main():Void {
         Toolkit.init();
@@ -10,5 +12,7 @@ class Main {
             app.start();
         });
         trace("Hello World");
+        var dd: DataDefs = new Map();
+        trace(dd);
     }
 }

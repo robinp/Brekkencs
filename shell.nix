@@ -8,5 +8,6 @@ with {
 };
 stdenv.mkDerivation {
   name = "dev-shell";
-  buildInputs = [ haxe hl hlSrc.src ];
+  buildInputs = [ haxe hl hlSrc.src
+                    libpng libjpeg_turbo libvorbis openal SDL2 mbedtls libuv libGL libGLU pcre sqlite ];
 }

@@ -16,8 +16,13 @@ setup:
 	#haxelib install haxeui-core
 	#haxelib install haxeui-heaps
 	#haxelib install heaps
+	#for compile-hl-c:
+	haxelib install hashlink
 
 compile:
 	haxe build.hxml
+
+compile-hl-c:
+	haxe build-hl-c.hxml
 
 # end
