@@ -3,17 +3,13 @@ package my;
 import haxe.ui.containers.HBox;
 import haxe.ui.events.MouseEvent;
 
-/*
 @:xml('
 <hbox>
     <textfield id="textfield" text="0" />
-    <button id="deinc" text="-" />
-    <button id="inc" text="+" />
+    <button id="deinc" text="--" />
+    <button id="inc" text="++" />
 </hbox>
 ')
-*/
-
-@:build(haxe.ui.macros.ComponentMacros.build("my/compy.xml"))
 class Compy extends HBox {
     public var wat: String = "?";
 
