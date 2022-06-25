@@ -6,6 +6,7 @@ import ui.DataDefList;
 
 import rts.DataDefs;
 import rts.Env;
+import ast.Expr;
 import ast.Sample;
 
 class Main {
@@ -18,6 +19,9 @@ class Main {
         trace(env);
         trace(d);
         trace(s1());
+        trace(env.interpret(
+            ["a" => NEntity(7)],
+            ERef(REntField(mkName("a"), mkName("Baz"), mkName("c")))));
 
         Toolkit.init();
         var app = new HaxeUIApp();
