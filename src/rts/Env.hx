@@ -29,21 +29,38 @@ class Env {
         dataDefs[d.name] = d;
     }
 
-    public function interpret(nameEnv: Map<String, Named>, e: Expr) {
-        // Note: top-level interpret is mostly called for its side-effects.
-        // But we could wrap the return type to be more indicative instead
-        // of coercing to Lit.
+    public function interpret(nameEnv: Map<String, Named>, e: Expr): Expr {
         return switch (e) {
-            case ELit(lit): lit;
+            case ELit(_): e;
             case ERef(r):
-            switch(r) {
-            case REntField(en, cn, fn):
-                var eid = getNamedEid(nameEnv, en.name);
-                var n = entityFields[cn.name][eid][fn.name];
-                LNum(n);
-            case _: LNum(42);
+                switch(r) {
+                case REntField(en, cn, fn):
+                    // TODO indicate errors
+                    var eid = getNamedEid(nameEnv, en.name);
+                    var n = entityFields[cn.name][eid][fn.name];
+                    // Lit vs Const in AST?
+                    // Is this a hack that we are interpreting the parsed AST directly?
+                    ELit(LNum(n));
+                case REntComp(_, _):
+                    throw new haxe.Exception("Can't eval Comp ref (yet?)");
+                }
+            case EBinop(op, e1, e2):
+                var ei1 = interpret(nameEnv, e1);
+                var ei2 = interpret(nameEnv, e2);
+                switch [ei1, ei2] {
+                case [ELit(LNum(n1)), ELit(LNum(n2))]:
+                    switch op {
+                    case BAdd: ELit(LNum(n1 + n2));
+                    case _: throw new haxe.Exception("Unimplemented binop" + op);
+                    }
+                case [ELit(LBool(b1)), ELit(LBool(b2))]:
+                    switch op {
+                    case BEq: ELit(LBool(b1 == b2));
+                    case _: throw new haxe.Exception("Unimplemented binop" + op);
+                    }
+            case _: throw new haxe.Exception("Can't mix operand types in expr");
             }
-            case _: LNum(4200);
+            case e: throw new haxe.Exception("Unimplemented expression: " + e);
         }
     }
 }

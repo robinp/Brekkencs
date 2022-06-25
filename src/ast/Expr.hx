@@ -19,10 +19,13 @@ enum Lit {
 }
 
 enum Binop {
+    // Number
     BAdd;
     BSub;
     BDiv;
     BMul;
+    // Bool
+    BEq;
     BLt;
 }
 
