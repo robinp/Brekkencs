@@ -6,6 +6,7 @@ import ui.DataDefList;
 
 import rts.DataDefs;
 import rts.Env;
+import ast.Sample;
 
 class Main {
     static public function main():Void {
@@ -16,6 +17,7 @@ class Main {
         env.addDataDef(d);
         trace(env);
         trace(d);
+        trace(s1());
 
         Toolkit.init();
         var app = new HaxeUIApp();
