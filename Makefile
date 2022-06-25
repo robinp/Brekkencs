@@ -4,7 +4,7 @@
 # @file
 # @version 0.1
 
-.PHONY: setup
+.PHONY: setup devshell-hashlink compile compile-js compile-hl-c
 
 setup:
 	haxelib git haxeui-core https://github.com/haxeui/haxeui-core
@@ -18,9 +18,16 @@ setup:
 	#haxelib install heaps
 	#for compile-hl-c:
 	haxelib install hashlink
+	haxelib install hlsdl
+
+devshell-hashlink:
+	nix-shell -E 'with import <nixpkgs> { }; callPackage ./nix/hashlink.nix { }'
 
 compile:
 	haxe build.hxml
+
+compile-js:
+	haxe build-js.hxml
 
 compile-hl-c:
 	haxe build-hl-c.hxml
