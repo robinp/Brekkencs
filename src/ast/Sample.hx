@@ -7,8 +7,8 @@ function s1(): Expr {
                     mkName(null),
                     mkName("Pos"),
                     mkName("y"));
-    return EQCtrl(
-        CFilter(
+    return EQueryCtrl(
+        QFilter(
             EBinop(BLt,
                 ERef(r),
                 ELit(LNum(100)))),

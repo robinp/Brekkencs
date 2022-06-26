@@ -19,12 +19,16 @@ class Main {
         trace(env);
         trace(d);
         trace(s1());
+        var r = REntField(mkName("a"), mkName("Baz"), mkName("c"));
         trace(env.interpret(
             ["a" => NEntity(7)],
-            EBinop(BAdd,
-              ERef(REntField(mkName("a"), mkName("Baz"), mkName("c"))),
-              ELit(LNum(2.7)))
-              ));
+            EEffect(
+              FSet(r,
+                            EBinop(BAdd,
+                            ERef(r),
+                            ELit(LNum(2.7)))
+                            ),
+              ERef(r))));
 
         Toolkit.init();
         var app = new HaxeUIApp();

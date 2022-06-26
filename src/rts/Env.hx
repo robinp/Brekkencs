@@ -58,9 +58,29 @@ class Env {
                     case BEq: ELit(LBool(b1 == b2));
                     case _: throw new haxe.Exception("Unimplemented binop" + op);
                     }
-            case _: throw new haxe.Exception("Can't mix operand types in expr");
-            }
+                case _: throw new haxe.Exception("Can't mix operand types in expr");
+                }
+            case EEffect(f, ke):
+                switch f {
+                case FSet(r, e):
+                    var ei = interpret(nameEnv, e);
+                    switch r {
+                    case REntField(en, cn, fn):
+                        var eid = getNamedEid(nameEnv, en.name);
+                        entityFields[cn.name][eid][fn.name] = assertAsNum(ei);
+                    case REntComp(_, _):
+                        throw new haxe.Exception("Setting component on entity is not yet implemented");
+                    }
+                }
+                interpret(nameEnv, ke);
             case e: throw new haxe.Exception("Unimplemented expression: " + e);
         }
     }
+}
+
+function assertAsNum(e: Expr): Float {
+    return switch e {
+        case ELit(LNum(n)): n;
+        case _: throw new haxe.Exception("Expected number, got: " + e);
+    };
 }

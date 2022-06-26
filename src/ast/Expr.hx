@@ -5,7 +5,7 @@ enum Expr {
     ERef(r: Ref);
     EBinop(op: Binop, e1: Expr, e2: Expr);
     EEffect(eff: Effect, ke: Expr);
-    EQCtrl(c: QCtrl, ke: Expr);
+    EQueryCtrl(c: QueryCtrl, ke: Expr);
     // EParen
     // EBindQuery
     // EBind
@@ -43,9 +43,9 @@ enum Ref {
     REntComp(en: Name, cn: Name);
 }
 
-enum QCtrl {
-    CFilter(e: Expr);
-    // CSort
+enum QueryCtrl {
+    QFilter(e: Expr);
+    // sort etc
 }
 
 class Name {
