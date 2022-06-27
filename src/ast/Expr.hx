@@ -7,7 +7,7 @@ enum Expr {
     EEffect(eff: Effect, ke: Expr);
     EQueryCtrl(c: QueryCtrl, ke: Expr);
     // EParen
-    // EBindQuery
+    EBindQuery(n: Name, ke: Expr);
     // EBind
     // ECtor
     // ENewEnt

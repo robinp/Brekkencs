@@ -3,11 +3,12 @@ package ast;
 import ast.Expr;
 
 function s1(): Expr {
+    var e = mkName("<anonymous>");
     var r: Ref = REntField(
-                    mkName(null),
+                    e,
                     mkName("Pos"),
                     mkName("y"));
-    return EQueryCtrl(
+    return EBindQuery(e, EQueryCtrl(
         QFilter(
             EBinop(BLt,
                 ERef(r),
@@ -16,5 +17,5 @@ function s1(): Expr {
             FSet(
                 r,
                 EBinop(BAdd, ERef(r), ELit(LNum(1)))),
-            ELit(LBool(true))));
+            ELit(LBool(true)))));
 }

@@ -30,6 +30,10 @@ class Main {
                             ),
               ERef(r))));
 
+        trace("Start");
+        trace(env.interpret([], s1()));
+        trace("End");
+
         Toolkit.init();
         var app = new HaxeUIApp();
         app.ready(function() {
