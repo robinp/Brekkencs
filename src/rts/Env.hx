@@ -17,7 +17,13 @@ function getNamedEid(ne: Map<String, Named>, n: String): Int {
 
 // Use of this points to some smell in the logic.
 // Acceptable temporarily, but bear in mind.
-var kArbitraryExpr = ELit(LNum(0));
+var kArbitraryExpr = ELit(LNum(42001));
+
+class CutToQueryException extends haxe.Exception {
+    public function new() {
+        super("cut");
+    }
+}
 
 class Env {
 
@@ -30,6 +36,7 @@ class Env {
 
     public function new() {
         entityFields["Baz"] = [7 => ["c" => 0.5]];
+        entityFields["Pos"] = [7 => ["x" => 0.0, "y" => 98.0]];
         entities[7] = true;
     }
 
@@ -57,7 +64,7 @@ class Env {
                     if (eComp == null) {
                         // Why not just throw specific exception and catch, instead
                         // of having to plumb this through? Good question.
-                        ECut;
+                        throw new CutToQueryException();
                     } else {
                         var n = eComp[fn.name];
                         // Unrelated wondering: Lit vs Const in AST?
@@ -76,6 +83,7 @@ class Env {
                 case [ELit(LNum(n1)), ELit(LNum(n2))]:
                     switch op {
                     case BAdd: ELit(LNum(n1 + n2));
+                    case BLt: ELit(LBool(n1 < n2));
                     case _: throw new haxe.Exception("Unimplemented binop" + op);
                     }
                 case [ELit(LBool(b1)), ELit(LBool(b2))]:
@@ -83,14 +91,12 @@ class Env {
                     case BEq: ELit(LBool(b1 == b2));
                     case _: throw new haxe.Exception("Unimplemented binop" + op);
                     }
-                case [a,b] | a == ECut || b == ECut: ECut;
                 case _: throw new haxe.Exception("Can't mix operand types in expr");
                 }
             case EEffect(f, ke):
                 switch f {
                 case FSet(r, e):
                     var ei = interpret(nameEnv, e);
-                    // TODO ECut..
                     switch r {
                     case REntField(en, cn, fn):
                         // TODO error handlings
@@ -113,7 +119,19 @@ class Env {
                 var res = kArbitraryExpr;
                 for (eid in entities.keys()) {
                     nameEnv[n.name] = NEntity(eid);
-                    res = interpret(nameEnv, ke);
+                    try {
+                        res = interpret(nameEnv, ke);
+                    } catch (e: CutToQueryException) {
+                        // TODO should somehow keep track which query we should
+                        // cut back to. Cutting to the nearest might not be
+                        // the correct thing (although... code should be
+                        // rearrangable so cutting to nearest is the right thing.
+                        // Maybe we should rewrite the AST, or at least its runtime,
+                        // or just suggest to the editor to move it to the right
+                        // place).
+
+                        // pass
+                    }
                 }
                 nameEnv[n.name] = prev;  // TODO delete if was missing etc
                 // Hack: this is kind of arbitrary and useless.
@@ -135,7 +153,7 @@ class Env {
                         switch res {
                             case ELit(LBool(v)):
                                 if (v) interpret(nameEnv, ke)
-                                else kArbitraryExpr;
+                                else throw new CutToQueryException();
                             case _: throw new haxe.Exception("Query filter should eval to Bool, not " + res);
                         }
                 }

@@ -17,5 +17,6 @@ function s1(): Expr {
             FSet(
                 r,
                 EBinop(BAdd, ERef(r), ELit(LNum(1)))),
-            ELit(LBool(true)))));
+            ERef(r)
+            )));
 }

@@ -11,16 +11,6 @@ enum Expr {
     // EBind
     // ECtor
     // ENewEnt
-
-    // This is an interpret-time thing only. Ugly.
-    // Should eventually factor?
-    // We basically have this, so the user doesn't have to deal with monadic
-    // things. Like, instead query control/cut, we could get the user write
-    // if/else with dummy else, but then they would need to return something
-    // from the else.. some dummy value. Which the would need to handle up in
-    // the chain, bloating code.  So rather the runtime takes the pain, to keep
-    // userland simpler.
-    ECutToQuery;
 }
 
 enum Lit {

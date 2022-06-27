@@ -32,6 +32,8 @@ class Main {
 
         trace("Start");
         trace(env.interpret([], s1()));
+        trace(env.interpret([], s1()));
+        trace(env.interpret([], s1()));
         trace("End");
 
         Toolkit.init();
