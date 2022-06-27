@@ -43,12 +43,29 @@ class Env {
             case ERef(r):
                 switch(r) {
                 case REntField(en, cn, fn):
-                    // TODO indicate errors
+                    // TODO indicate errors.. or eventually should have some
+                    // error-continuation mechanism? Would need to write stuff
+                    // in CPS style? Worth the hassle?
+                    // (If we are properly immutable, could just restart the
+                    // whole thing from some more granular checkpoint, saving
+                    // most of the CPS hassle..)
+                    // E: name missing
                     var eid = getNamedEid(nameEnv, en.name);
-                    var n = entityFields[cn.name][eid][fn.name];
-                    // Lit vs Const in AST?
-                    // Is this a hack that we are interpreting the parsed AST directly?
-                    ELit(LNum(n));
+                    var ctab = entityFields[cn.name];
+                    if (ctab == null) throw new haxe.Exception("Unknown component: " + cn.name);
+                    var eComp = ctab[eid];
+                    if (eComp == null) {
+                        // Why not just throw specific exception and catch, instead
+                        // of having to plumb this through? Good question.
+                        ECut;
+                    } else {
+                        var n = eComp[fn.name];
+                        // Unrelated wondering: Lit vs Const in AST?
+                        //   Is this a hack that we are interpreting the parsed AST directly?
+
+                        // For now we only have numeric fields.
+                        ELit(LNum(n));
+                    }
                 case REntComp(_, _):
                     throw new haxe.Exception("Can't eval Comp ref (yet?)");
                 }
@@ -66,15 +83,21 @@ class Env {
                     case BEq: ELit(LBool(b1 == b2));
                     case _: throw new haxe.Exception("Unimplemented binop" + op);
                     }
+                case [a,b] | a == ECut || b == ECut: ECut;
                 case _: throw new haxe.Exception("Can't mix operand types in expr");
                 }
             case EEffect(f, ke):
                 switch f {
                 case FSet(r, e):
                     var ei = interpret(nameEnv, e);
+                    // TODO ECut..
                     switch r {
                     case REntField(en, cn, fn):
+                        // TODO error handlings
+                        // E: missing name
                         var eid = getNamedEid(nameEnv, en.name);
+                        // E: component doesn't exist?
+                        //   Should we eventually auto-create (with field defaulting)?
                         entityFields[cn.name][eid][fn.name] = assertAsNum(ei);
                     case REntComp(_, _):
                         throw new haxe.Exception("Setting component on entity is not yet implemented");

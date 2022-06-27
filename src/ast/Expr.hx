@@ -11,6 +11,16 @@ enum Expr {
     // EBind
     // ECtor
     // ENewEnt
+
+    // This is an interpret-time thing only. Ugly.
+    // Should eventually factor?
+    // We basically have this, so the user doesn't have to deal with monadic
+    // things. Like, instead query control/cut, we could get the user write
+    // if/else with dummy else, but then they would need to return something
+    // from the else.. some dummy value. Which the would need to handle up in
+    // the chain, bloating code.  So rather the runtime takes the pain, to keep
+    // userland simpler.
+    ECutToQuery;
 }
 
 enum Lit {
@@ -43,6 +53,29 @@ enum Ref {
     REntComp(en: Name, cn: Name);
 }
 
+// Maybe query control is a misleading name to this?
+// Generally, it might not cut a query execution, but just evaluation of
+// _some_ computation block. For example, if the user writes `i < j` in some
+// loop construct, the user would expect to only shortcut that loop scope.
+//
+// Well, we don't have explicit loops now. Maybe won't ever have.. that
+// leaves only the cutting of the query as a possibility.
+//
+// If we had loops, would this act like a continue? Or would we need explicit
+// marking of which level of nested control do we want to cut?
+// Can that be the same concern with queries? In nested queries, how would we
+// know which query to cut? Only the last etc? Or can we know based on the
+// qualities of the expressions used in the filter (say, cut back to the
+// last query which had its entity involved? Might need some dataflow analysis,
+// once locals can be involved, but sounds the right thing... we should anyway
+// have some liberty in reordering stuff as long semantics is not affected).
+//
+// How about funcalls eventually? Would a cut affect only rest of the function,
+// or propagate beyond? Are cuts even allowed in functions? Sounds like local
+// branching can have the same effect, so cuts are not really needed. Same with
+// loops etc. So probably we should reserve "query control" really for queries,
+// and have the semantics that supports whatever smooth/fast implementation we
+// want.
 enum QueryCtrl {
     QFilter(e: Expr);
     // sort etc
