@@ -1,6 +1,7 @@
 package rts;
 
 import rts.DataDefs;
+import rts.NativeGfx;
 import ast.Expr;
 
 enum Named {
@@ -29,15 +30,23 @@ class Env {
 
     private var dataDefs: DataDefs = emptyDataDefs();
 
-    private var entityFields: Map<TypeName, Map<Int, Map<String, Float>>> = [];
+    // The leaf field map should refer to the same instance.
+    private var compEntityFields: Map<TypeName, Map<Int, Map<String, Float>>> = [];
+    private var entityCompFields: Map<Int, Map<TypeName, Map<String, Float>>> = [];
 
-    // Poor man's set.
-    private var entities: Map<Int, Bool> = [];
+    private var nativeGfx: NativeGfx;
 
-    public function new() {
-        entityFields["Baz"] = [7 => ["c" => 0.5]];
-        entityFields["Pos"] = [7 => ["x" => 0.0, "y" => 98.0]];
-        entities[7] = true;
+    public function new(ngfx: NativeGfx) {
+        this.nativeGfx = ngfx;
+        // Move below out to Main or something.
+        var fBaz = ["c" => 0.5];
+        var fPos = ["x" => 70.0, "y" => 50.0];
+        compEntityFields["Baz"] = [7 => fBaz];
+        compEntityFields["Pos"] = [7 => fPos];
+        entityCompFields[7] = [
+            "Baz" => fBaz,
+            "Pos" => fPos,
+        ];
     }
 
     public function addDataDef(d: DataDef) {
@@ -58,7 +67,7 @@ class Env {
                     // most of the CPS hassle..)
                     // E: name missing
                     var eid = getNamedEid(nameEnv, en.name);
-                    var ctab = entityFields[cn.name];
+                    var ctab = compEntityFields[cn.name];
                     if (ctab == null) throw new haxe.Exception("Unknown component: " + cn.name);
                     var eComp = ctab[eid];
                     if (eComp == null) {
@@ -75,6 +84,9 @@ class Env {
                     }
                 case REntComp(_, _):
                     throw new haxe.Exception("Can't eval Comp ref (yet?)");
+                case REntOrLocal(_):
+                    // Can't further eval a local ref, can we?
+                    return e;
                 }
             case EBinop(op, e1, e2):
                 var ei1 = interpret(nameEnv, e1);
@@ -104,9 +116,24 @@ class Env {
                         var eid = getNamedEid(nameEnv, en.name);
                         // E: component doesn't exist?
                         //   Should we eventually auto-create (with field defaulting)?
-                        entityFields[cn.name][eid][fn.name] = assertAsNum(ei);
+                        compEntityFields[cn.name][eid][fn.name] = assertAsNum(ei);
                     case REntComp(_, _):
                         throw new haxe.Exception("Setting component on entity is not yet implemented");
+                    case REntOrLocal(_):
+                        throw new haxe.Exception("Setting local/ent is not a valid effect");
+                    }
+                case FNative(nc):
+                    switch nc {
+                    case NDraw(e):
+                        var ei = interpret(nameEnv, e);
+                        switch ei {
+                        case ERef(REntOrLocal(en)):
+                            // E: missing name
+                            // E: not an entity ref
+                            var eid = getNamedEid(nameEnv, en.name);
+                            nativeGfx.draw(entityCompFields.get(eid));
+                        case _: throw new haxe.Exception("Need entity ref for !draw, got: " + ei);
+                        }
                     }
                 }
                 interpret(nameEnv, ke);
@@ -117,7 +144,7 @@ class Env {
                 // Let's query the entities, and bind each in succession to the name
                 // while executing the inner expression.
                 var res = kArbitraryExpr;
-                for (eid in entities.keys()) {
+                for (eid in entityCompFields.keys()) {
                     nameEnv[n.name] = NEntity(eid);
                     try {
                         res = interpret(nameEnv, ke);

@@ -4,6 +4,7 @@ import ast.Expr;
 
 function s1(): Expr {
     var e = mkName("<anonymous>");
+    var er: Ref = REntOrLocal(e);
     var r: Ref = REntField(
                     e,
                     mkName("Pos"),
@@ -12,11 +13,13 @@ function s1(): Expr {
         QFilter(
             EBinop(BLt,
                 ERef(r),
-                ELit(LNum(100)))),
+                ELit(LNum(500)))),
         EEffect(
             FSet(
                 r,
                 EBinop(BAdd, ERef(r), ELit(LNum(1)))),
-            ERef(r)
-            )));
+            EEffect(
+                FNative(NDraw(ERef(er))),
+                ERef(r)
+            ))));
 }

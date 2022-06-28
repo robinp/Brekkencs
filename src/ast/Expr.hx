@@ -30,15 +30,22 @@ enum Binop {
 }
 
 enum Effect {
+    // Why we take ref here? It must eval to Ref, but can it be a generic expression?
     FSet(r: Ref, e: Expr);  // When
     // FDelEnt
     // FDelComp
+    FNative(nc: NativeCall);
 }
 
 // Not sure if there should be phases to this rather.
 enum Ref {
-    // RLocal?
-    // REnt
+    // RLocal? Actually on a parser level, we can't (won't?) differentiate
+    // between a local or an entity name ref. After type-checking or something
+    // it might be more apparent.
+    REntOrLocal(en: Name);
+    // Hm, maybe we should factor these to generic FieldAccess constructs?
+    // Since if we have deeper field access etc, the current structure won't
+    // fit.
     REntField(en: Name, cn: Name, fn: Name);
     REntComp(en: Name, cn: Name);
 }
@@ -69,6 +76,10 @@ enum Ref {
 enum QueryCtrl {
     QFilter(e: Expr);
     // sort etc
+}
+
+enum NativeCall {
+    NDraw(e: Expr);  // resolving to an entity ref
 }
 
 class Name {
