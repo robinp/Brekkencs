@@ -49,3 +49,16 @@ systems on users (unless they want to). So we should treat it somehow (note:
 factoring ourselves under the hood into more straight, pregenerated index +
 choice-less execution path-ed systems might come with performance benefits...
 just wondering aloud, evils and all).
+
+## Drawing
+
+There are basically two approaches to drawing: a more imperative, where the
+program itself controls drawing order, and draw calls are executed on the spot;
+and a more declarative, where the program just asks for a draw, but they happen
+independently ordered.
+
+The first one is less surprizing maybe, while the second lets for better
+batching on various draw-states (color, texture etc). But for Brekkencs, at
+least for now, we don't need that sophistication (and well, the program can
+itself be written to be aware of these orderings if needed... then the
+interpreter, or even some jit, can make the decision to change state or not).

@@ -4,15 +4,10 @@ import rts.DataDefs;
 import rts.NativeGfx;
 import ast.Expr;
 
-enum Named {
-    NEntity(eid: Int);
-    NLit(l: Lit);
-}
-
-function getNamedEid(ne: Map<String, Named>, n: String): Int {
+function lookupNamedEidFromEnv(ne: Map<String, Lit>, n: String): Int {
     return switch (ne[n]) {
-        case NEntity(eid): eid;
-        case NLit(_): throw new haxe.Exception("not an entitiy ref: " + n);
+        case LEntity(eid): eid;
+        case e: throw new haxe.Exception("not an entitiy ref for '" + n + "', value is '" + e + "'");
     }
 }
 
@@ -20,6 +15,23 @@ function getNamedEid(ne: Map<String, Named>, n: String): Int {
 // Acceptable temporarily, but bear in mind.
 var kArbitraryExpr = ELit(LNum(42001));
 
+/**
+ * Signals that a query-bound entity didn't fulfil some expectations, so
+ * we should instead skip to the next entity.
+ *
+ * Ideally we analyse the subprogram using the query result, and automatically
+ * determine what kind of entities to query for - most likely in terms of the
+ * components the entity has, but other dimensions are possible too.
+ *
+ * Instead of that, we now just iterate all entities when querying, and break
+ * execution late, when we find a missing component. Note though, that this
+ * mechanism might be needed even later, if it is not possible to build an
+ * exact index for the kind of entities used: a subprogram might contain
+ * branches where it accesses different components, so the set of entities
+ * would be ambiguous anyway (though we don't have the semantics exactly
+ * hashed out, what it would mean to access different components on different
+ * branches).
+ */
 class CutToQueryException extends haxe.Exception {
     public function new() {
         super("cut");
@@ -34,6 +46,7 @@ class Env {
     private var compEntityFields: Map<TypeName, Map<Int, Map<String, Float>>> = [];
     private var entityCompFields: Map<Int, Map<TypeName, Map<String, Float>>> = [];
 
+    // Provides drawing capability on the specific platform.
     private var nativeGfx: NativeGfx;
 
     public function new(ngfx: NativeGfx) {
@@ -53,7 +66,7 @@ class Env {
         dataDefs[d.name] = d;
     }
 
-    public function interpret(nameEnv: Map<String, Named>, e: Expr): Expr {
+    public function interpret(nameEnv: Map<String, Lit>, e: Expr): Expr {
         return switch (e) {
             case ELit(_): e;
             case ERef(r):
@@ -66,27 +79,35 @@ class Env {
                     // whole thing from some more granular checkpoint, saving
                     // most of the CPS hassle..)
                     // E: name missing
-                    var eid = getNamedEid(nameEnv, en.name);
+                    var eid = lookupNamedEidFromEnv(nameEnv, en.name);
                     var ctab = compEntityFields[cn.name];
                     if (ctab == null) throw new haxe.Exception("Unknown component: " + cn.name);
                     var eComp = ctab[eid];
                     if (eComp == null) {
-                        // Why not just throw specific exception and catch, instead
-                        // of having to plumb this through? Good question.
                         throw new CutToQueryException();
-                    } else {
-                        var n = eComp[fn.name];
-                        // Unrelated wondering: Lit vs Const in AST?
-                        //   Is this a hack that we are interpreting the parsed AST directly?
-
-                        // For now we only have numeric fields.
-                        ELit(LNum(n));
                     }
+                    // E: component doesn't have such field
+                    //    (either can happen or not, depending on what upfront
+                    //     checking we performed. No upfront checking now)
+                    var n = eComp[fn.name];
+                    if (n == null) {
+                      throw new haxe.Exception("Component '" + cn.name + "' doesn't have field named '" + fn.name + "'");
+                    }
+                    // Unrelated wondering: Lit vs Const in AST?
+                    //   Is this a hack that we are interpreting the parsed AST directly?
+
+                    // For now we only have numeric fields.
+                    ELit(LNum(n));
                 case REntComp(_, _):
                     throw new haxe.Exception("Can't eval Comp ref (yet?)");
-                case REntOrLocal(_):
-                    // Can't further eval a local ref, can we?
-                    return e;
+                case REntOrLocal(n):
+                    // Locals we can resolve to the actual current value.
+                    // Entities... we can only keep as entities.
+                    var res = nameEnv[n.name];
+                    if (res == null) {
+                        throw new haxe.Exception("No local named '" + n.name + "' in scope.");
+                    }
+                    return ELit(res);
                 }
             case EBinop(op, e1, e2):
                 var ei1 = interpret(nameEnv, e1);
@@ -103,7 +124,7 @@ class Env {
                     case BEq: ELit(LBool(b1 == b2));
                     case _: throw new haxe.Exception("Unimplemented binop" + op);
                     }
-                case _: throw new haxe.Exception("Can't mix operand types in expr");
+                case _: throw new haxe.Exception("Can't mix operand types in expr, or unsupported binop for types, or not literals");
                 }
             case EEffect(f, ke):
                 switch f {
@@ -113,7 +134,7 @@ class Env {
                     case REntField(en, cn, fn):
                         // TODO error handlings
                         // E: missing name
-                        var eid = getNamedEid(nameEnv, en.name);
+                        var eid = lookupNamedEidFromEnv(nameEnv, en.name);
                         // E: component doesn't exist?
                         //   Should we eventually auto-create (with field defaulting)?
                         compEntityFields[cn.name][eid][fn.name] = assertAsNum(ei);
@@ -127,12 +148,9 @@ class Env {
                     case NDraw(e):
                         var ei = interpret(nameEnv, e);
                         switch ei {
-                        case ERef(REntOrLocal(en)):
-                            // E: missing name
-                            // E: not an entity ref
-                            var eid = getNamedEid(nameEnv, en.name);
+                        case ELit(LEntity(eid)):
                             nativeGfx.draw(entityCompFields.get(eid));
-                        case _: throw new haxe.Exception("Need entity ref for !draw, got: " + ei);
+                        case _: throw new haxe.Exception("Need entity literal for !draw, got: " + ei);
                         }
                     }
                 }
@@ -145,7 +163,7 @@ class Env {
                 // while executing the inner expression.
                 var res = kArbitraryExpr;
                 for (eid in entityCompFields.keys()) {
-                    nameEnv[n.name] = NEntity(eid);
+                    nameEnv[n.name] = LEntity(eid);
                     try {
                         res = interpret(nameEnv, ke);
                     } catch (e: CutToQueryException) {
@@ -160,7 +178,12 @@ class Env {
                         // pass
                     }
                 }
-                nameEnv[n.name] = prev;  // TODO delete if was missing etc
+                if (prev == null) {
+                  nameEnv.remove(n.name);
+                } else {
+                  nameEnv[n.name] = prev;
+                }
+
                 // Hack: this is kind of arbitrary and useless.
                 // Should we support some kind of reducer over the produced results?
                 // Might be more meaningful. Let's see if the need emerges

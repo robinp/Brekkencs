@@ -45,7 +45,7 @@ class Main {
             trace(s1());
             var r = REntField(mkName("a"), mkName("Baz"), mkName("c"));
             trace(env.interpret(
-                ["a" => NEntity(7)],
+                ["a" => LEntity(7)],
                 EEffect(
                 FSet(r,
                                 EBinop(BAdd,
@@ -56,7 +56,7 @@ class Main {
 
             trace("Set timer");
             new haxe.ui.util.Timer(0, function() {
-                trace(env.interpret([], s1()));
+                trace(env.interpret(["delta" => LNum(3.0)], s1()));
             });
             trace("Done");
 

@@ -2,6 +2,7 @@ package ast;
 
 import ast.Expr;
 
+// Note: needs "delta" in nameEnv.
 function s1(): Expr {
     var e = mkName("<anonymous>");
     var er: Ref = REntOrLocal(e);
@@ -17,7 +18,7 @@ function s1(): Expr {
         EEffect(
             FSet(
                 r,
-                EBinop(BAdd, ERef(r), ELit(LNum(1)))),
+                EBinop(BAdd, ERef(r), ERef(REntOrLocal(mkName("delta"))))),
             EEffect(
                 FNative(NDraw(ERef(er))),
                 ERef(r)

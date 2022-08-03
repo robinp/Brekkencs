@@ -16,6 +16,7 @@ enum Expr {
 enum Lit {
     LNum(v: Float);
     LBool(v: Bool);
+    LEntity(v: Int);
 }
 
 enum Binop {
@@ -38,6 +39,10 @@ enum Effect {
 }
 
 // Not sure if there should be phases to this rather.
+//
+// Current ctors seem to conflate LHS-es (where we want to see only a limited
+// set of access patterns, like below) and RHS-es (where the access is more
+// free-form, and might mix in expressions).
 enum Ref {
     // RLocal? Actually on a parser level, we can't (won't?) differentiate
     // between a local or an entity name ref. After type-checking or something
@@ -52,7 +57,7 @@ enum Ref {
 
 // Maybe query control is a misleading name to this?
 // Generally, it might not cut a query execution, but just evaluation of
-// _some_ computation block. For example, if the user writes `i < j` in some
+// _some_ computation block. For example, if the user asserts `i < j` in some
 // loop construct, the user would expect to only shortcut that loop scope.
 //
 // Well, we don't have explicit loops now. Maybe won't ever have.. that
