@@ -1,0 +1,6 @@
+A possible small lispy syntax, until we have something UI-able:
+
+(query e
+  (must (< e.Pos.y 500))
+  (= e.Pos.y (+ e.Pos.y delta))
+  (draw! e))

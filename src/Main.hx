@@ -10,6 +10,7 @@ import rts.Env;
 import rts.heaps.HeapsGfx;
 import ast.Expr;
 import ast.Sample;
+import parse.Parser;
 
 /*
 class Main extends hxd.App {
@@ -24,6 +25,9 @@ class Main {
         var app = new HaxeUIApp();
 
         trace("Hello World");
+
+        var p = new Parser("5");
+        trace("parsed: " + p.parse());
         app.ready(function() {
             //app.addComponent(new MainView());
 
