@@ -7,6 +7,7 @@
 .PHONY: setup devshell-hashlink compile compile-js compile-hl-c
 
 setup:
+	haxelib install utest
 	haxelib git haxeui-core https://github.com/haxeui/haxeui-core
 	haxelib git haxeui-heaps https://github.com/haxeui/haxeui-heaps
 	haxelib git heaps https://github.com/HeapsIO/heaps
@@ -22,6 +23,10 @@ setup:
 
 devshell-hashlink:
 	nix-shell -E 'with import <nixpkgs> { }; callPackage ./nix/hashlink.nix { }'
+
+test:
+	haxe build-test.hxml
+	hl ./out/Test.hl
 
 compile:
 	haxe build.hxml
