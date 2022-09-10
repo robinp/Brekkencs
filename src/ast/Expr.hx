@@ -16,6 +16,9 @@ enum Expr {
 enum Lit {
     LNum(v: Float);
     LBool(v: Bool);
+    /** Note: can't be parsed directly, only by getting
+     *  runtime reference.
+     */
     LEntity(v: Int);
 }
 

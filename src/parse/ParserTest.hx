@@ -11,20 +11,29 @@ class ParserTest extends utest.Test {
     Assert.same(ELit(LNum(5.0)), doParse("5"));
   }
 
+  function testParenWrapNoop() {
+    Assert.same(doParse("5"), doParse("(5)"));
+    Assert.same(doParse("5"), doParse("((5))"));
+  }
+
   function testBoolLit() {
     Assert.same(ELit(LBool(true)), doParse("t"));
     Assert.same(ELit(LBool(false)), doParse("f"));
   }
 
-  // TODO and this is where parsing shows possible
-  // overconstrained AST. The Binop should be wrapped up
-  // as Expr to parse nicely uniformly. Well, the parser
-  // shouldn't drive the AST, but surely hints to some
-  // more general problem here. If we want to allow
-  // custom functions etc, then binops are just one kind
-  // of the possible operators?
   function testBinOp() {
-    Assert.same(BLt, doParse("<"));
+    Assert.same(EBinop(BLt, ELit(LNum(3)), ELit(LNum(5))),
+                doParse("(< 3 5)"));
+  }
+
+  function testQuery() {
+    Assert.same(EBindQuery(mkName("x"), ELit(LNum(1))),
+                doParse("(query x 1)"));
+  }
+
+  function testMust() {
+    Assert.same(EQueryCtrl(QFilter(ELit(LBool(true))), ELit(LNum(3))),
+                doParse("(must t 3)"));
   }
 
   function testGarbage() {
