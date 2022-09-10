@@ -89,6 +89,8 @@ enum QueryCtrl {
 }
 
 enum NativeCall {
+    // Not sure we want to list them all on AST level.
+    // Rather have some way for env to register these with their arities or so.
     NDraw(e: Expr);  // resolving to an entity ref
 }
 

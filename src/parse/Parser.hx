@@ -73,6 +73,11 @@ class Parser {
           throw new haxe.Exception("expected reference arg to set around " + pos);
       }
     }
+    if (tok == "draw!") {
+      var e1 = parse();
+      var e2 = parse();
+      return EEffect(FNative(NDraw(e1)), e2);
+    }
 
     // For now we don't have custom funcalls, so this must be a name ref.
     // Checking if it is a valid ref is deferred until interpretation time

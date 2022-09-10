@@ -10,7 +10,9 @@ But actually we now take continuations in the AST (instead of having statement l
 (query e
   (must (< e.Pos.y 500)
     (set e.Pos.y (+ e.Pos.y delta)
-      (draw! e))))
+      (draw! e t))))
 
 Though if we could batch effects into a statement list, could help.
 Or generally, to have lists.. though that's somewhat syntactic only.
+
+Note the final `t`: just a dummy result-value for now.

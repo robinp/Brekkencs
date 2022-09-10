@@ -69,10 +69,20 @@ class ParserTest extends utest.Test {
                 doParse("(set x 5 t)"));
   }
 
-  function testGarbage() {
-    Assert.raises(() -> {
-        doParse("%=! baz");
-    });
+  function testEffectNativeCall() {
+    Assert.same(EEffect(
+                  FNative(NDraw(ERef(REntOrLocal(mkName("x"))))),
+                  ELit(LBool(true))),
+                doParse("(draw! x t)"));
+  }
+
+  function testTooManyArgs() {
+    Assert.raises(() -> { doParse("(draw! x t toomany)"); });
+    Assert.raises(() -> { doParse("(foo bar)"); });
+  }
+
+  function testNoFullParse() {
+    Assert.raises(() -> { doParse("bar baz"); });
   }
 
   private function doParse(s: String): Expr {
