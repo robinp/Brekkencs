@@ -1,0 +1,6 @@
+(query e
+  (must (< e.Pos.y 500)
+    (set e.Pos.y (+ e.Pos.y delta)
+      (set e.Pos.x (+ e.Pos.x (/ delta 2))
+        (draw! e
+          t)))))

@@ -28,6 +28,14 @@ class ParserTest extends utest.Test {
                 doParse("(> 3 5)"));
     Assert.same(EBinop(BEq, ELit(LNum(3)), ELit(LNum(5))),
                 doParse("(= 3 5)"));
+    Assert.same(EBinop(BAdd, ELit(LNum(3)), ELit(LNum(5))),
+                doParse("(+ 3 5)"));
+    Assert.same(EBinop(BSub, ELit(LNum(3)), ELit(LNum(5))),
+                doParse("(- 3 5)"));
+    Assert.same(EBinop(BMul, ELit(LNum(3)), ELit(LNum(5))),
+                doParse("(* 3 5)"));
+    Assert.same(EBinop(BDiv, ELit(LNum(3)), ELit(LNum(5))),
+                doParse("(/ 3 5)"));
   }
 
   function testQuery() {
@@ -83,6 +91,11 @@ class ParserTest extends utest.Test {
 
   function testNoFullParse() {
     Assert.raises(() -> { doParse("bar baz"); });
+  }
+
+  function testRegressionCanParse() {
+    doParse("(set e.Pos.y (+ e.Pos.y delta) (draw! e t))");
+    Assert.isTrue(true);
   }
 
   private function doParse(s: String): Expr {

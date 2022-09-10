@@ -116,13 +116,18 @@ class Env {
                 case [ELit(LNum(n1)), ELit(LNum(n2))]:
                     switch op {
                     case BAdd: ELit(LNum(n1 + n2));
+                    case BSub: ELit(LNum(n1 - n2));
+                    case BMul: ELit(LNum(n1 * n2));
+                    case BDiv: ELit(LNum(n1 / n2));
                     case BLt: ELit(LBool(n1 < n2));
-                    case _: throw new haxe.Exception("Unimplemented binop" + op);
+                    case BGt: ELit(LBool(n1 > n2));
+                    case BEq: ELit(LBool(n1 == n2));  // Precision?
+                    case _: throw new haxe.Exception("Unimplemented num binop" + op);
                     }
                 case [ELit(LBool(b1)), ELit(LBool(b2))]:
                     switch op {
                     case BEq: ELit(LBool(b1 == b2));
-                    case _: throw new haxe.Exception("Unimplemented binop" + op);
+                    case _: throw new haxe.Exception("Unimplemented bool binop" + op);
                     }
                 case _: throw new haxe.Exception("Can't mix operand types in expr, or unsupported binop for types, or not literals");
                 }

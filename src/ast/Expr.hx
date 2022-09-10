@@ -29,10 +29,10 @@ enum Binop {
     BDiv;
     BMul;
     // Bool
-    BEq;
     BLt;
-    // Overloaded
     BGt;
+    // Overloaded
+    BEq;
 }
 
 enum Effect {

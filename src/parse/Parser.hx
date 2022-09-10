@@ -148,6 +148,10 @@ class Parser {
       case "<": BLt;
       case ">": BGt;
       case "=": BEq;
+      case "+": BAdd;
+      case "-": BSub;
+      case "*": BMul;
+      case "/": BDiv;
       default: null;
     }
   }

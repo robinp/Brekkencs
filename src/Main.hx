@@ -26,8 +26,6 @@ class Main {
 
         trace("Hello World");
 
-        var p = new Parser("5");
-        trace("parsed: " + p.parse());
         app.ready(function() {
             //app.addComponent(new MainView());
 
@@ -58,9 +56,15 @@ class Main {
                                 ),
                 ERef(r))));
 
-            trace("Set timer");
+            trace("resources:" + haxe.Resource.listNames());
+            var s2 = haxe.Resource.getString("R_s2_bk");
+            trace("Going to parse: [" + s2 + "]");
+            var p = new Parser(s2);
+            var s2exp = p.parse();
+            trace("parsed to [" + s2exp + "]");
+            trace("Loop starts");
             new haxe.ui.util.Timer(0, function() {
-                trace(env.interpret(["delta" => LNum(3.0)], s1()));
+                env.interpret(["delta" => LNum(3.0)], s2exp);
             });
             trace("Done");
 

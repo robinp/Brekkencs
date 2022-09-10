@@ -23,7 +23,7 @@ class HeapsGfx implements NativeGfx {
         var p = comps["Pos"];
         var x = p["x"];
         var y = p["y"];
-        trace("Going to draw at ", x, y);
+        //trace("Going to draw at ", x, y);
         gfx.setColor(0xFF0044);
         gfx.beginFill(0x00FFDD);
         gfx.drawCircle(x, y, 3.0);
