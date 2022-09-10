@@ -13,6 +13,11 @@ class Parser {
     this.s = s;
   }
 
+  public function atEnd() {
+    skipSpaces();
+    return pos >= s.length;
+  }
+
   public function parse(): Expr {
     skipSpaces();
     assertNotOver();
@@ -57,7 +62,67 @@ class Parser {
       var e2 = parse();
       return EQueryCtrl(QFilter(e1), e2);
     }
-    throw new haxe.Exception("no parse: [" + tok + "] at pos " + p0 + ".." + pos);
+    if (tok == "set") {
+      var e1 = parse();
+      switch (e1) {
+        case ERef(r):
+          var e2 = parse();
+          var e3 = parse();
+          return EEffect(FSet(r, e2), e3);
+        default:
+          throw new haxe.Exception("expected reference arg to set around " + pos);
+      }
+    }
+
+    // For now we don't have custom funcalls, so this must be a name ref.
+    // Checking if it is a valid ref is deferred until interpretation time
+    // for now. (Or at least to a separate analysis phase).
+    var r = parseRefFrom(tok, p0, pos);
+    return ERef(r);
+
+    //throw new haxe.Exception("no parse: [" + tok + "] at pos " + p0 + ".." + pos);
+  }
+
+  private function parseRefFrom(tok: String, p0: Int, p1: Int): Ref {
+    var parts = tok.split(".");
+    if (parts.length > 3) {
+      throw new haxe.Exception("too many parts in reference-like: [" + tok + "] at pos " + p0 + ".." + p1);
+    }
+    var nl: String = null;
+    var nc: String = null;
+    var nf: String = null;
+    if (parts.length >= 1) {
+      nl = parts[0];
+      var startCh = nl.charAt(0);
+      if (startCh.toLowerCase() != startCh) {
+        throw new haxe.Exception("ref should be lower-case: [" + tok + "] at pos " + p0 + ".." + p1);
+      }
+    }
+    if (parts.length >= 2) {
+      nc = parts[1];
+      var startCh = nc.charAt(0);
+      if (startCh.toUpperCase() != startCh) {
+        throw new haxe.Exception("component ref should be upper-case: [" + tok + "] at pos " + p0 + ".." + p1);
+      }
+    }
+    if (parts.length >= 3) {
+      nf = parts[2];
+      var startCh = nf.charAt(0);
+      if (startCh.toLowerCase() != startCh) {
+        throw new haxe.Exception("field ref should be lower-case: [" + tok + "] at pos " + p0 + ".." + p1);
+      }
+    }
+    if (nf != null) {
+      return REntField(mkName(nl), mkName(nc), mkName(nf));
+    }
+    if (nc != null) {
+      return REntComp(mkName(nl), mkName(nc));
+    }
+    return REntOrLocal(mkName(nl));
+  }
+
+  private function isAtLevelClosing() {
+    return pos >= s.length || s.charAt(pos) == P_CLOSE;
   }
 
   private function skipSpaces() {
@@ -76,6 +141,7 @@ class Parser {
   private function parseBinop(s: String): Null<Binop> {
     return switch (s) {
       case "<": BLt;
+      case ">": BGt;
       case "=": BEq;
       default: null;
     }

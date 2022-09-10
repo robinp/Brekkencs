@@ -2,5 +2,15 @@ A possible small lispy syntax, until we have something UI-able:
 
 (query e
   (must (< e.Pos.y 500))
-  (= e.Pos.y (+ e.Pos.y delta))
+  (set e.Pos.y (+ e.Pos.y delta))
   (draw! e))
+
+But actually we now take continuations in the AST (instead of having statement lists), so:
+
+(query e
+  (must (< e.Pos.y 500)
+    (set e.Pos.y (+ e.Pos.y delta)
+      (draw! e))))
+
+Though if we could batch effects into a statement list, could help.
+Or generally, to have lists.. though that's somewhat syntactic only.

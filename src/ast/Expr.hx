@@ -31,11 +31,13 @@ enum Binop {
     // Bool
     BEq;
     BLt;
+    // Overloaded
+    BGt;
 }
 
 enum Effect {
     // Why we take ref here? It must eval to Ref, but can it be a generic expression?
-    FSet(r: Ref, e: Expr);  // When
+    FSet(r: Ref, e: Expr);  // When? Deal with scheduling later..
     // FDelEnt
     // FDelComp
     FNative(nc: NativeCall);
@@ -49,11 +51,11 @@ enum Effect {
 enum Ref {
     // RLocal? Actually on a parser level, we can't (won't?) differentiate
     // between a local or an entity name ref. After type-checking or something
-    // it might be more apparent.
+    // it might be more apparent. (And, locals can also be entity refs).
     REntOrLocal(en: Name);
     // Hm, maybe we should factor these to generic FieldAccess constructs?
     // Since if we have deeper field access etc, the current structure won't
-    // fit.
+    // fit. (Though, we might get away without deeper field access for now).
     REntField(en: Name, cn: Name, fn: Name);
     REntComp(en: Name, cn: Name);
 }
