@@ -6,11 +6,9 @@ enum Expr {
     EBinop(op: Binop, e1: Expr, e2: Expr);
     EEffect(eff: Effect, ke: Expr);
     EQueryCtrl(c: QueryCtrl, ke: Expr);
-    // EParen
     EBindQuery(n: Name, ke: Expr);
+    EBindNewEntity(n: Name, ke: Expr);
     // EBind
-    // ECtor
-    // ENewEnt
 }
 
 enum Lit {

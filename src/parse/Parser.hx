@@ -57,6 +57,11 @@ class Parser {
       var e = parse();
       return EBindQuery(n, e);
     }
+    if (tok == "new") {
+      var n = parseName();
+      var e = parse();
+      return EBindNewEntity(n, e);
+    }
     if (tok == "must") {
       var e1 = parse();
       var e2 = parse();

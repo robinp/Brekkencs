@@ -84,6 +84,12 @@ class ParserTest extends utest.Test {
                 doParse("(draw! x t)"));
   }
 
+  function testBindNewEntity() {
+    Assert.same(EBindNewEntity(mkName("x"), ELit(LBool(true))),
+                doParse("(new x t)"));
+  }
+
+
   function testTooManyArgs() {
     Assert.raises(() -> { doParse("(draw! x t toomany)"); });
     Assert.raises(() -> { doParse("(foo bar)"); });

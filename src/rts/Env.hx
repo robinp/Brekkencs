@@ -45,6 +45,7 @@ class Env {
     // The leaf field map should refer to the same instance.
     private var compEntityFields: Map<TypeName, Map<Int, Map<String, Float>>> = [];
     private var entityCompFields: Map<Int, Map<TypeName, Map<String, Float>>> = [];
+    private var nextEntityId: Int = 0;
 
     // Provides drawing capability on the specific platform.
     private var nativeGfx: NativeGfx;
@@ -62,6 +63,12 @@ class Env {
         ];
     }
 
+    public function addEntity(): Int {
+      var eid = nextEntityId++;
+      entityCompFields[eid] = new Map();
+      return eid;
+    }
+
     public function addDataDef(d: DataDef) {
         dataDefs[d.name] = d;
     }
@@ -69,6 +76,11 @@ class Env {
     public function interpret(nameEnv: Map<String, Lit>, e: Expr): Expr {
         return switch (e) {
             case ELit(_): e;
+            case EBindNewEntity(n, ke):
+                var eid = addEntity();
+                // TODO(nameenv): save previous? etc.
+                nameEnv[n.name] = LEntity(eid);
+                interpret(nameEnv, ke);
             case ERef(r):
                 switch(r) {
                 case REntField(en, cn, fn):
@@ -142,7 +154,22 @@ class Env {
                         var eid = lookupNamedEidFromEnv(nameEnv, en.name);
                         // E: component doesn't exist?
                         //   Should we eventually auto-create (with field defaulting)?
-                        compEntityFields[cn.name][eid][fn.name] = assertAsNum(ei);
+                        var efs = compEntityFields[cn.name];
+                        var fs = efs[eid];
+                        if (fs == null) {
+                          // TODO properly create all fields from datadef
+                          fs = efs[eid] = new Map();
+                        }
+                        fs[fn.name] = assertAsNum(ei);
+
+                        var cfs = entityCompFields[eid];
+                        var fs = cfs[cn.name];
+                        if (fs == null) {
+                          // TODO prepopulate all fields like above.
+                          //   Or even share the map?
+                          fs = cfs[cn.name] = new Map();
+                          fs[fn.name] = assertAsNum(ei);
+                        }
                     case REntComp(_, _):
                         throw new haxe.Exception("Setting component on entity is not yet implemented");
                     case REntOrLocal(_):
@@ -163,6 +190,9 @@ class Env {
             case EBindQuery(n, ke):
                 // For now mutate the nameEnv. We might want an immutabel version
                 // later? Or only while in interactive/debug mode?
+                // TODO(nameenv): unify handling of this.
+                //   More a matter when we would have restricted scopes, which
+                //   we now don't have.
                 var prev = nameEnv[n.name];
                 // Let's query the entities, and bind each in succession to the name
                 // while executing the inner expression.

@@ -2,5 +2,8 @@
   (must (< e.Pos.y 500)
     (set e.Pos.y (+ e.Pos.y delta)
       (set e.Pos.x (+ e.Pos.x (/ delta 2))
-        (draw! e
-          t)))))
+        (new f
+          (set f.Pos.x (+ 5 e.Pos.x)
+            (set f.Pos.y (+ e.Pos.y 3)
+              (draw! e
+                t))))))))
