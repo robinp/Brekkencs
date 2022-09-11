@@ -77,6 +77,9 @@ class Env {
         return switch (e) {
             case ELit(_): e;
             case EBindNewEntity(n, ke):
+                // TODO: how does this interact with ongoing query?
+                //   new entities should only be available for query...
+                //   ..acconding to the scheduling. Which is..
                 var eid = addEntity();
                 // TODO(nameenv): save previous? etc.
                 nameEnv[n.name] = LEntity(eid);
