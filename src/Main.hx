@@ -63,8 +63,15 @@ class Main {
             var s2exp = p.parse();
             trace("parsed to [" + s2exp + "]");
             trace("Loop starts");
+            var step = 0;
+            var t0 = Sys.time();
             new haxe.ui.util.Timer(0, function() {
                 env.interpret(["delta" => LNum(3.0)], s2exp);
+                var t1 = Sys.time();
+                if (step++ % 1 == 0) {
+                  trace("Step ", step, "Delta ", t1-t0, "Entity count: ", env.entityCount()-100);
+                }
+                t0 = t1;
             });
             trace("Done");
 

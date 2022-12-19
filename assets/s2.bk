@@ -1,5 +1,5 @@
 (query e
-  (must (< e.Pos.y 500)
+  (must (< e.Pos.y 400)
     (set e.Pos.y (+ e.Pos.y delta)
       (set e.Pos.x (+ e.Pos.x (/ delta 2))
         (new f

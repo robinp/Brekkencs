@@ -42,10 +42,12 @@ class Env {
 
     private var dataDefs: DataDefs = emptyDataDefs();
 
-    // The leaf field map should refer to the same instance.
+    // The leaf field map should refer to the same map instance.
     private var compEntityFields: Map<TypeName, Map<Int, Map<String, Float>>> = [];
     private var entityCompFields: Map<Int, Map<TypeName, Map<String, Float>>> = [];
-    private var nextEntityId: Int = 0;
+    // TODO move this back to zero or something, now we start higher since
+    //   due to manual messing around we add some low eids directly.
+    private var nextEntityId: Int = 100;
 
     // Provides drawing capability on the specific platform.
     private var nativeGfx: NativeGfx;
@@ -61,6 +63,12 @@ class Env {
             "Baz" => fBaz,
             "Pos" => fPos,
         ];
+    }
+
+    // To some generic stats later as needed.
+    public function entityCount(): Int {
+      // Slightly wrong, but..
+      return nextEntityId;
     }
 
     public function addEntity(): Int {
@@ -159,19 +167,22 @@ class Env {
                         //   Should we eventually auto-create (with field defaulting)?
                         var efs = compEntityFields[cn.name];
                         var fs = efs[eid];
+                        var entityHadComponentAlready = true;
                         if (fs == null) {
                           // TODO properly create all fields from datadef
                           fs = efs[eid] = new Map();
+                          entityHadComponentAlready = false;
                         }
                         fs[fn.name] = assertAsNum(ei);
 
                         var cfs = entityCompFields[eid];
-                        var fs = cfs[cn.name];
-                        if (fs == null) {
-                          // TODO prepopulate all fields like above.
-                          //   Or even share the map?
-                          fs = cfs[cn.name] = new Map();
-                          fs[fn.name] = assertAsNum(ei);
+                        var fs2 = cfs[cn.name];
+                        if (fs2 == null) {
+                          if (!entityHadComponentAlready) {
+                            cfs[cn.name] = fs;
+                          } else {
+                            throw new haxe.Exception("Programming error: compEntityFields was present but entityCompFields was not: comp[" + cn.name + "] eid[" + eid + "]");
+                          }
                         }
                     case REntComp(_, _):
                         throw new haxe.Exception("Setting component on entity is not yet implemented");
