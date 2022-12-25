@@ -1,6 +1,7 @@
 package parse;
 
 import ast.Expr;
+import ast.Context;
 
 class Parser {
   private var pos: Int = 0;
@@ -18,7 +19,7 @@ class Parser {
     return pos >= s.length;
   }
 
-  public function parse(): Expr {
+  public function parse(): Expr<Context> {
     skipSpaces();
     assertNotOver();
     if (curChar() == P_OPEN) {
@@ -65,7 +66,7 @@ class Parser {
     if (tok == "must") {
       var e1 = parse();
       var e2 = parse();
-      return EQueryCtrl(QFilter(e1), e2);
+      return EQueryCtrl(Context.next(), QFilter(e1), e2);
     }
     if (tok == "set") {
       var e1 = parse();

@@ -3,6 +3,7 @@ package rts;
 import rts.DataDefs;
 import rts.NativeGfx;
 import ast.Expr;
+import ast.Context;
 
 function lookupNamedEidFromEnv(ne: Map<String, Lit>, n: String): Int {
     return switch (ne[n]) {
@@ -81,7 +82,7 @@ class Env {
         dataDefs[d.name] = d;
     }
 
-    public function interpret(nameEnv: Map<String, Lit>, e: Expr): Expr {
+    public function interpret(nameEnv: Map<String, Lit>, e: Expr<Context>): Expr<Context> {
         return switch (e) {
             case ELit(_): e;
             case EBindNewEntity(n, ke):
@@ -240,7 +241,7 @@ class Env {
                 // see when we have funcalls. So supporting at AST level, unless
                 // some good reason, seems a bit overblown?)
                 res;
-            case EQueryCtrl(c, ke):
+            case EQueryCtrl(_ctx, c, ke):
                 switch c {
                     case QFilter(ce):
                         // Note: should we enforce purit of control expressions?
@@ -261,7 +262,7 @@ class Env {
     }
 }
 
-function assertAsNum(e: Expr): Float {
+function assertAsNum(e: Expr<Context>): Float {
     return switch e {
         case ELit(LNum(n)): n;
         case _: throw new haxe.Exception("Expected number, got: " + e);

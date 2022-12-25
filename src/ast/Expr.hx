@@ -1,13 +1,13 @@
 package ast;
 
-enum Expr {
+enum Expr<A> {
     ELit(lit: Lit);
     ERef(r: Ref);
-    EBinop(op: Binop, e1: Expr, e2: Expr);
-    EEffect(eff: Effect, ke: Expr);
-    EQueryCtrl(c: QueryCtrl, ke: Expr);
-    EBindQuery(n: Name, ke: Expr);
-    EBindNewEntity(n: Name, ke: Expr);
+    EBinop(op: Binop, e1: Expr<A>, e2: Expr<A>);
+    EEffect(eff: Effect<A>, ke: Expr<A>);
+    EQueryCtrl(ann: A, c: QueryCtrl<A>, ke: Expr<A>);
+    EBindQuery(n: Name, ke: Expr<A>);
+    EBindNewEntity(n: Name, ke: Expr<A>);
     // EBind
 }
 
@@ -33,12 +33,12 @@ enum Binop {
     BEq;
 }
 
-enum Effect {
+enum Effect<A> {
     // Why we take ref here? It must eval to Ref, but can it be a generic expression?
-    FSet(r: Ref, e: Expr);  // When? Deal with scheduling later..
+    FSet(r: Ref, e: Expr<A>);  // When? Deal with scheduling later..
     // FDelEnt
     // FDelComp
-    FNative(nc: NativeCall);
+    FNative(nc: NativeCall<A>);
 }
 
 // Not sure if there should be phases to this rather.
@@ -81,15 +81,15 @@ enum Ref {
 // loops etc. So probably we should reserve "query control" really for queries,
 // and have the semantics that supports whatever smooth/fast implementation we
 // want.
-enum QueryCtrl {
-    QFilter(e: Expr);
+enum QueryCtrl<A> {
+    QFilter(e: Expr<A>);
     // sort etc
 }
 
-enum NativeCall {
+enum NativeCall<A> {
     // Not sure we want to list them all on AST level.
     // Rather have some way for env to register these with their arities or so.
-    NDraw(e: Expr);  // resolving to an entity ref
+    NDraw(e: Expr<A>);  // resolving to an entity ref
 }
 
 class Name {

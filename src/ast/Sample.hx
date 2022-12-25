@@ -1,16 +1,18 @@
 package ast;
 
+import ast.Context;
 import ast.Expr;
 
 // Note: needs "delta" in nameEnv.
-function s1(): Expr {
-    var e = mkName("<anonymous>");
-    var er: Ref = REntOrLocal(e);
+function s1(): Expr<Context> {
+    var n = mkName("<anonymous>");
+    var er: Ref = REntOrLocal(n);
     var r: Ref = REntField(
-                    e,
+                    n,
                     mkName("Pos"),
                     mkName("y"));
-    return EBindQuery(e, EQueryCtrl(
+    return EBindQuery(n, EQueryCtrl(
+        Context.next(),
         QFilter(
             EBinop(BLt,
                 ERef(r),
