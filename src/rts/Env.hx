@@ -164,6 +164,7 @@ class Env {
                         // TODO error handlings
                         // E: missing name
                         var eid = lookupNamedEidFromEnv(nameEnv, en.name);
+
                         // E: component doesn't exist?
                         //   Should we eventually auto-create (with field defaulting)?
                         var efs = compEntityFields[cn.name];

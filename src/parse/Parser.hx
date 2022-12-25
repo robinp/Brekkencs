@@ -19,6 +19,18 @@ class Parser {
     return pos >= s.length;
   }
 
+  public function parseMany(): Array<Expr<Context>> {
+    var res = [];
+    while (pos < s.length) {
+      skipSpaces();
+      if (pos < s.length) {
+        var e = parse();
+        res.push(e);
+      }
+    }
+    return res;
+  }
+
   public function parse(): Expr<Context> {
     skipSpaces();
     assertNotOver();
@@ -95,6 +107,11 @@ class Parser {
   }
 
   private function parseRefFrom(tok: String, p0: Int, p1: Int): Ref {
+    // TODO some more syntax validation
+    if (tok.length == 0) {
+      throw new haxe.Exception("empty-named reference (missing some expression?): [" + tok + "] at pos " + p0 + ".." + p1);
+    }
+
     var parts = tok.split(".");
     if (parts.length > 3) {
       throw new haxe.Exception("too many parts in reference-like: [" + tok + "] at pos " + p0 + ".." + p1);

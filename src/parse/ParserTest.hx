@@ -2,6 +2,7 @@ package parse;
 
 import utest.Assert;
 
+import ast.Context;
 import ast.Expr;
 import parse.Parser;
 
@@ -39,12 +40,13 @@ class ParserTest extends utest.Test {
   }
 
   function testQuery() {
-    Assert.same(EBindQuery(mkName("x"), ELit(LNum(1))),
+    Assert.same(EBindQuery(new Context(0), mkName("x"), ELit(LNum(1))),
                 doParse("(query x 1)"));
   }
 
   function testMust() {
-    Assert.same(EQueryCtrl(QFilter(ELit(LBool(true))), ELit(LNum(3))),
+    // Hack, we need to inject some context generation strategy.
+    Assert.same(EQueryCtrl(new Context(1), QFilter(ELit(LBool(true))), ELit(LNum(3))),
                 doParse("(must t 3)"));
   }
 
@@ -104,7 +106,18 @@ class ParserTest extends utest.Test {
     Assert.isTrue(true);
   }
 
-  private function doParse(s: String): Expr {
+  function testCantParseEmptyName() {
+    // Bad if passes:
+    //Assert.same(ERef(REntOrLocal(mkName(""))), doParse("()"));
+
+    // Misses last continuation expression
+    Assert.raises(() -> { doParse("()"); });
+
+    // Actual wild occurrence:
+    Assert.raises(() -> { doParse("(set e.Pos.x 5)"); });
+  }
+
+  private function doParse(s: String): Expr<Context> {
     var p = new Parser(s);
     var r = p.parse();
     if (!p.atEnd()) {

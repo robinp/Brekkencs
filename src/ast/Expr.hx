@@ -96,6 +96,10 @@ class Name {
     public var name: String;  // A bit too raw isn't it.
 
     public function new(n: String) { this.name = n; }
+
+    public function toString(): String {
+      return "Name[" + name + "]";
+    }
 }
 
 function mkName(n: String) { return new Name(n); }

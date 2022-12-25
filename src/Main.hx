@@ -60,17 +60,25 @@ class Main {
             var s2 = haxe.Resource.getString("R_s2_bk");
             trace("Going to parse: [" + s2 + "]");
             var p = new Parser(s2);
-            var s2exp = p.parse();
-            trace("parsed to [" + s2exp + "]");
+            var exps = p.parseMany();
+            for (e in exps) {
+              trace("parsed [" + e + "]");
+            }
             trace("Loop starts");
             var step = 0;
             var t0 = Sys.time();
+            var dt = 0.005;  // Arbitrary small initial value.
             new haxe.ui.util.Timer(0, function() {
-                env.interpret(["delta" => LNum(3.0)], s2exp);
+                for (e in exps) {
+                  env.interpret(["delta" => LNum(dt), "step" => LNum(step)], e);
+                }
+
+                // Account time spent.
                 var t1 = Sys.time();
-                if (step++ % 1 == 0) {
+                if (step++ % 100 == 0) {
                   trace("Step ", step, "Delta ", t1-t0, "Entity count: ", env.entityCount()-100);
                 }
+                dt = t1 - t0;
                 t0 = t1;
             });
             trace("Done");

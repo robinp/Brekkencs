@@ -1,9 +1,13 @@
+(query g
+  (must (= step 0)
+    (new e
+      (set e.Pos.x 10
+        (set e.Pos.y 20
+          t)))))
+
 (query e
   (must (< e.Pos.y 400)
-    (set e.Pos.y (+ e.Pos.y delta)
-      (set e.Pos.x (+ e.Pos.x (/ delta 2))
-        (new f
-          (set f.Pos.x (+ 5 e.Pos.x)
-            (set f.Pos.y (+ e.Pos.y 3)
-              (draw! e
-                t))))))))
+    (set e.Pos.y (+ e.Pos.y (* 10 delta))
+      (set e.Pos.x (+ e.Pos.x (* 5 delta))
+        (draw! e
+          t)))))
