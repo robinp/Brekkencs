@@ -6,7 +6,7 @@ enum Expr<A> {
     EBinop(op: Binop, e1: Expr<A>, e2: Expr<A>);
     EEffect(eff: Effect<A>, ke: Expr<A>);
     EQueryCtrl(ann: A, c: QueryCtrl<A>, ke: Expr<A>);
-    EBindQuery(n: Name, ke: Expr<A>);
+    EBindQuery(ann: A, n: Name, ke: Expr<A>);
     EBindNewEntity(n: Name, ke: Expr<A>);
     // EBind
 }

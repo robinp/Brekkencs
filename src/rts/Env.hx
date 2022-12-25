@@ -202,7 +202,7 @@ class Env {
                     }
                 }
                 interpret(nameEnv, ke);
-            case EBindQuery(n, ke):
+            case EBindQuery(ann, n, ke):
                 // For now mutate the nameEnv. We might want an immutabel version
                 // later? Or only while in interactive/debug mode?
                 // TODO(nameenv): unify handling of this.

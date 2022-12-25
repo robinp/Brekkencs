@@ -56,7 +56,7 @@ class Parser {
     if (tok == "query") {
       var n = parseName();
       var e = parse();
-      return EBindQuery(n, e);
+      return EBindQuery(Context.next(), n, e);
     }
     if (tok == "new") {
       var n = parseName();

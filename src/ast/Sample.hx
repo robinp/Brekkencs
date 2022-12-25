@@ -11,7 +11,7 @@ function s1(): Expr<Context> {
                     n,
                     mkName("Pos"),
                     mkName("y"));
-    return EBindQuery(n, EQueryCtrl(
+    return EBindQuery(Context.next(), n, EQueryCtrl(
         Context.next(),
         QFilter(
             EBinop(BLt,
