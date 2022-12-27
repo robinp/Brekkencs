@@ -1,16 +1,15 @@
-(query g
-  (must (= step 0)
-    (new e
-      (set e.Pos.x 10
-        (set e.Pos.y 20
-          (set e.Vel.x 0
-            (set e.Vel.y 0
-              (new f
-                (set f.Pos.x 80
-                  (set f.Pos.y 20
-                    (set f.Vel.x 0
-                      (set f.Vel.y 0
-                        t))))))))))))
+(must (= step 0)
+  (new e
+    (set e.Pos.x 10
+      (set e.Pos.y 20
+        (set e.Vel.x 0
+          (set e.Vel.y 0
+            (new f
+              (set f.Pos.x 80
+                (set f.Pos.y 20
+                  (set f.Vel.x 0
+                    (set f.Vel.y 0
+                      t)))))))))))
 
 (query e
   (must (< e.Pos.y 400)

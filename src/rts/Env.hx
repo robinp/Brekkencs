@@ -32,6 +32,9 @@ var kArbitraryExpr = ELit(LNum(42001));
  * would be ambiguous anyway (though we don't have the semantics exactly
  * hashed out, what it would mean to access different components on different
  * branches).
+ *
+ * Note: this is also (ab?)used to let query-less must expressions cut short
+ * running a system. Kind of makes sense.
  */
 class CutToQueryException extends haxe.Exception {
     public function new() {
@@ -89,6 +92,18 @@ class Env {
       return efs;
     }
 
+    /**
+     * Compared to plain 'interpret', swallows 'CutToQueryException' to let
+     * cutting system execution short.
+     */
+    public function interpretSystem(nameEnv: Map<String, Lit>, e: Expr<Context>): Expr<Context> {
+      try {
+        return interpret(nameEnv, e);
+      } catch (e: CutToQueryException) {
+        return kArbitraryExpr;
+      }
+    }
+
     public function interpret(nameEnv: Map<String, Lit>, e: Expr<Context>): Expr<Context> {
         return switch (e) {
             case ELit(_): e;
@@ -112,7 +127,15 @@ class Env {
                     // E: name missing
                     var eid = lookupNamedEidFromEnv(nameEnv, en.name);
                     var ctab = compEntityFields[cn.name];
-                    if (ctab == null) throw new haxe.Exception("Unknown component: " + cn.name);
+                    if (ctab == null) {
+                      if (autoRegisterComponents) {
+                        // If we allow components to be late-registered, then
+                        // we must be lenient with component access too.
+                        throw new CutToQueryException();
+                      } else {
+                        throw new haxe.Exception("Unknown component: " + cn.name);
+                      }
+                    }
                     var eComp = ctab[eid];
                     if (eComp == null) {
                         throw new CutToQueryException();

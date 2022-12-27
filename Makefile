@@ -4,7 +4,7 @@
 # @file
 # @version 0.1
 
-.PHONY: setup devshell-hashlink compile compile-js compile-hl-c
+.PHONY: setup devshell-hashlink compile fcompile compile-js fcompile-js compile-hl-c test ftest
 
 setup:
 	haxelib install utest
@@ -24,11 +24,21 @@ test:
 	haxe build-test.hxml
 	hl ./out/Test.hl
 
+ftest:
+	haxe --connect 127.0.0.1:1222 build-test.hxml
+	hl out/Test.hl
+
 compile:
 	haxe build.hxml
 
+fcompile:
+	haxe --connect 127.0.0.1:1222 build.hxml
+
 compile-js:
 	haxe build-js.hxml
+
+fcompile-js:
+	haxe --connect 127.0.0.1:1222 build-js.hxml
 
 compile-hl-c:
 	haxe build-hl-c.hxml

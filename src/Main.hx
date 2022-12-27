@@ -27,11 +27,6 @@ class Main extends hxd.App {
       var d2 = new DataDef("Baz", ["c" => true]);
       env.addDataDef(d);
       env.addDataDef(d2);
-
-      // Just a dummy entity, so dummy query can work.
-      // Well, could just allow query-less must-s.
-      var pdummy = new Parser("(new e t)");
-      env.interpret([], pdummy.parse());
     }
 
     private function parseCode(s: String) {
@@ -62,6 +57,7 @@ class Main extends hxd.App {
         gfx = new HeapsGfx(s2d);
         trace("resources:" + haxe.Resource.listNames());
         var s2 = haxe.Resource.getString("R_s2_bk");
+
         #if js
         js.Syntax.code("window.setSource({0});", s2);
         js.Syntax.code("window.setUpdateCallback({0});", parseCode);
@@ -76,7 +72,7 @@ class Main extends hxd.App {
 
     override function update(dt:Float) {
         for (e in exps) {
-          env.interpret(["delta" => LNum(dt), "step" => LNum(step)], e);
+          env.interpretSystem(["delta" => LNum(dt), "step" => LNum(step)], e);
         }
         if (step++ % 100 == 0) {
           trace("Step ", step, "Delta ", dt, "Entity count: ", env.entityCount());
