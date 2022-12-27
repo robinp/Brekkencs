@@ -11,6 +11,9 @@ class Test {
     runner.run();
     */
 
-    utest.UTest.run([new parse.ParserTest()]);
+    utest.UTest.run([
+      new parse.ParserTest(),
+      new rts.EnvTest(),
+    ]);
   }
 }

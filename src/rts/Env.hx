@@ -39,40 +39,33 @@ class CutToQueryException extends haxe.Exception {
     }
 }
 
+typedef EntitiesFields = Map<Int, Map<String, Float>>;
+
 class Env {
 
     private var dataDefs: DataDefs = emptyDataDefs();
 
+    private var autoRegisterComponents: Bool = true;
+
     // The leaf field map should refer to the same map instance.
-    private var compEntityFields: Map<TypeName, Map<Int, Map<String, Float>>> = [];
+    private var compEntityFields: Map<TypeName, EntitiesFields> = [];
     private var entityCompFields: Map<Int, Map<TypeName, Map<String, Float>>> = [];
-    // TODO move this back to zero or something, now we start higher since
-    //   due to manual messing around we add some low eids directly.
-    private var nextEntityId: Int = 100;
+    private var nextEntityId: Int = 0;
 
     // Provides drawing capability on the specific platform.
     private var nativeGfx: NativeGfx;
 
     public function new(ngfx: NativeGfx) {
         this.nativeGfx = ngfx;
-        // Move below out to Main or something.
-        var fBaz = ["c" => 0.5];
-        var fPos = ["x" => 70.0, "y" => 50.0];
-        compEntityFields["Baz"] = [7 => fBaz];
-        compEntityFields["Pos"] = [7 => fPos];
-        entityCompFields[7] = [
-            "Baz" => fBaz,
-            "Pos" => fPos,
-        ];
     }
 
     // To some generic stats later as needed.
     public function entityCount(): Int {
-      // Slightly wrong, but..
       return nextEntityId;
     }
 
     public function addEntity(): Int {
+      // Overflow not handled...
       var eid = nextEntityId++;
       entityCompFields[eid] = new Map();
       return eid;
@@ -80,6 +73,20 @@ class Env {
 
     public function addDataDef(d: DataDef) {
         dataDefs[d.name] = d;
+        compEntityFields[d.name] = new Map();
+    }
+
+    inline private function ensureComponentAndGetEntitiesFields(c: String): EntitiesFields {
+      var efs = compEntityFields[c];
+      if (efs == null) {
+        if (autoRegisterComponents) {
+          // TODO What about dataDefs?
+          efs = compEntityFields[c] = new Map();
+        } else {
+          throw new haxe.Exception("Component [" + c + "] doesn't exist and auto-registration is off");
+        }
+      }
+      return efs;
     }
 
     public function interpret(nameEnv: Map<String, Lit>, e: Expr<Context>): Expr<Context> {
@@ -173,8 +180,7 @@ class Env {
                         var eid = lookupNamedEidFromEnv(nameEnv, en.name);
 
                         // E: component doesn't exist?
-                        //   Should we eventually auto-create (with field defaulting)?
-                        var efs = compEntityFields[cn.name];
+                        var efs = ensureComponentAndGetEntitiesFields(cn.name);
                         var fs = efs[eid];
                         var entityHadComponentAlready = true;
                         if (fs == null) {
@@ -182,6 +188,7 @@ class Env {
                           fs = efs[eid] = new Map();
                           entityHadComponentAlready = false;
                         }
+                        // TODO bool, other? Or actually check datadef?
                         fs[fn.name] = assertAsNum(ei);
 
                         var cfs = entityCompFields[eid];

@@ -10,6 +10,11 @@ class Parser {
   private static var P_OPEN = "(";
   private static var P_CLOSE = ")";
 
+  private var genContext: () -> Context = function() {
+    // TODO plumb proper generator
+    return new Context(0);
+  };
+
   public function new(s: String) {
     this.s = s;
   }
@@ -27,6 +32,23 @@ class Parser {
         var e = parse();
         res.push(e);
       }
+    }
+    return res;
+  }
+
+  public function parseFullyFrom(ins: String): Expr<Context> {
+    var prevS = s;
+    var prevPos = pos;
+    s = ins;
+    pos = 0;
+    var res = parse();
+    var wasFullParse = atEnd();
+    // Restore
+    s = prevS;
+    pos = prevPos;
+    // Return
+    if (!wasFullParse) {
+      throw new haxe.Exception("parsed [" + res + "] but didn't consume full input from [" + ins + "]");
     }
     return res;
   }
@@ -69,7 +91,7 @@ class Parser {
     if (tok == "query") {
       var n = parseName();
       var e = parse();
-      return EBindQuery(Context.next(), n, e);
+      return EBindQuery(genContext(), n, e);
     }
     if (tok == "new") {
       var n = parseName();
@@ -79,7 +101,7 @@ class Parser {
     if (tok == "must") {
       var e1 = parse();
       var e2 = parse();
-      return EQueryCtrl(Context.next(), QFilter(e1), e2);
+      return EQueryCtrl(genContext(), QFilter(e1), e2);
     }
     if (tok == "set") {
       var e1 = parse();

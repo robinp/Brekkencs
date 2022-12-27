@@ -1,3 +1,4 @@
 out/Main.*
+out/*.hl
 out/c
 *.swp

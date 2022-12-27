@@ -35,6 +35,7 @@ class Main {
             var d = new DataDef("Foobar", ["a" => true, "b" => true]);
             var d2 = new DataDef("Baz", ["c" => true]);
             env.addDataDef(d);
+            env.addDataDef(d2);
             var dv = new DataDefView(d);
             var dv2 = new DataDefView(d2);
             var ds = new DataDefList();
@@ -45,17 +46,6 @@ class Main {
             trace(env);
             trace(d);
             trace(s1());
-            var r = REntField(mkName("a"), mkName("Baz"), mkName("c"));
-            trace(env.interpret(
-                ["a" => LEntity(7)],
-                EEffect(
-                FSet(r,
-                                EBinop(BAdd,
-                                ERef(r),
-                                ELit(LNum(2.7)))
-                                ),
-                ERef(r))));
-
             trace("resources:" + haxe.Resource.listNames());
             var s2 = haxe.Resource.getString("R_s2_bk");
             trace("Going to parse: [" + s2 + "]");
@@ -64,6 +54,12 @@ class Main {
             for (e in exps) {
               trace("parsed [" + e + "]");
             }
+
+            trace("Env setup");
+            // Just a dummy entity, so dummy query can work.
+            // Well, could just allow query-less must-s.
+            env.interpret([], p.parseFullyFrom("(new e t)"));
+
             trace("Loop starts");
             var step = 0;
             var t0 = Sys.time();
@@ -76,7 +72,7 @@ class Main {
                 // Account time spent.
                 var t1 = Sys.time();
                 if (step++ % 100 == 0) {
-                  trace("Step ", step, "Delta ", t1-t0, "Entity count: ", env.entityCount()-100);
+                  trace("Step ", step, "Delta ", t1-t0, "Entity count: ", env.entityCount());
                 }
                 dt = t1 - t0;
                 t0 = t1;

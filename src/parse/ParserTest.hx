@@ -48,7 +48,7 @@ class ParserTest extends utest.Test {
 
   function testMust() {
     // Hack, we need to inject some context generation strategy.
-    Assert.same(EQueryCtrl(new Context(1), QFilter(ELit(LBool(true))), ELit(LNum(3))),
+    Assert.same(EQueryCtrl(new Context(0), QFilter(ELit(LBool(true))), ELit(LNum(3))),
                 doParse("(must t 3)"));
   }
 
