@@ -31,6 +31,7 @@ enum Binop {
     BGt;
     // Overloaded
     BEq;
+    BNe;
 }
 
 enum Effect<A> {

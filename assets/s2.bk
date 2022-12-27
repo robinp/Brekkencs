@@ -11,3 +11,9 @@
       (set e.Pos.x (+ e.Pos.x (* 5 delta))
         (draw! e
           t)))))
+
+(query a
+  (query b
+    (must (!= a b)
+      (set a.Pos.x (+ a.Pos.x (* 0.01 (- b.Pos.x a.Pos.x)))
+        t))))

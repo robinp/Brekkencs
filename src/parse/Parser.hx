@@ -39,7 +39,8 @@ class Parser {
       var e = parse();
       skipSpaces();
       if (curChar() != P_CLOSE) {
-        throw new haxe.Exception("Expected ) at pos " + pos);
+        throw new haxe.Exception("Expected ) at pos " + pos + ", context: ["
+          + s.substring(Math.round(Math.max(0, pos-25)), pos));
       }
       pos += 1;
       return e;
@@ -53,7 +54,7 @@ class Parser {
     if (tok == "f") {
       return ELit(LBool(false));
     }
-    // TODO assert this is the first token in sexp.
+    // TODO assert this is the first token in sexp (why btw?)
     var mbBinop  = parseBinop(tok);
     if (mbBinop != null) {
       var e1 = parse();
@@ -171,6 +172,7 @@ class Parser {
       case "<": BLt;
       case ">": BGt;
       case "=": BEq;
+      case "!=": BNe;
       case "+": BAdd;
       case "-": BSub;
       case "*": BMul;

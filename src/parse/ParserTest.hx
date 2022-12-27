@@ -29,6 +29,8 @@ class ParserTest extends utest.Test {
                 doParse("(> 3 5)"));
     Assert.same(EBinop(BEq, ELit(LNum(3)), ELit(LNum(5))),
                 doParse("(= 3 5)"));
+    Assert.same(EBinop(BNe, ELit(LNum(3)), ELit(LNum(5))),
+                doParse("(!= 3 5)"));
     Assert.same(EBinop(BAdd, ELit(LNum(3)), ELit(LNum(5))),
                 doParse("(+ 3 5)"));
     Assert.same(EBinop(BSub, ELit(LNum(3)), ELit(LNum(5))),
