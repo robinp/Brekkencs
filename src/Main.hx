@@ -1,10 +1,3 @@
-import haxe.ui.core.Screen;
-import haxe.ui.HaxeUIApp;
-import haxe.ui.Toolkit;
-
-import ui.DataDefView;
-import ui.DataDefList;
-
 import rts.DataDefs;
 import rts.Env;
 import rts.heaps.HeapsGfx;
@@ -14,46 +7,69 @@ import parse.Parser;
 
 class Main extends hxd.App {
     static function main() {
+      hxd.Res.initEmbed();
       new Main();
     }
 
-    private var step: Int = 0;
+    private var gfx: rts.NativeGfx;
     private var env: Env;
+
+    private var step: Int = 0;
     private var exps: Array<Expr<ast.Context>>;
+
+    private function reset() {
+      gfx.clear();
+      step = 0;
+
+      trace("Env setup");
+      env = new Env(gfx);
+      var d = new DataDef("Foobar", ["a" => true, "b" => true]);
+      var d2 = new DataDef("Baz", ["c" => true]);
+      env.addDataDef(d);
+      env.addDataDef(d2);
+
+      // Just a dummy entity, so dummy query can work.
+      // Well, could just allow query-less must-s.
+      var pdummy = new Parser("(new e t)");
+      env.interpret([], pdummy.parse());
+    }
+
+    private function parseCode(s: String) {
+        trace("Going to parse: [" + s + "]");
+        var p = new Parser(s);
+        try {
+          exps = p.parseMany();
+          for (e in exps) {
+            trace("parsed [" + e + "]");
+          }
+        } catch (e) {
+            trace("Exception parsing", e);
+        }
+    }
 
     override function init() {
         var tf = new h2d.Text(hxd.res.DefaultFont.get(), s2d);
         tf.text = "Hello World !";
 
-        var hgfx = new HeapsGfx(s2d);
-        env = new Env(hgfx);
-        var d = new DataDef("Foobar", ["a" => true, "b" => true]);
-        var d2 = new DataDef("Baz", ["c" => true]);
-        env.addDataDef(d);
-        env.addDataDef(d2);
-        var dv = new DataDefView(d);
-        var dv2 = new DataDefView(d2);
-        var ds = new DataDefList();
-        ds.addDataDefView(dv);
-        ds.addDataDefView(dv2);
-        //app.addComponent(ds);
+        /* Not bad, but multi-line edit needs some tweaks.
+        var inp = new h2d.TextInput(hxd.res.DefaultFont.get(), s2d);
+        inp.text = "Edit\nme";
+        inp.x = 5;
+        inp.y = 100;
+        inp.textColor = 0xAAAAAA;
+        */
 
-        trace(env);
-        trace(d);
-        trace(s1());
+        gfx = new HeapsGfx(s2d);
         trace("resources:" + haxe.Resource.listNames());
         var s2 = haxe.Resource.getString("R_s2_bk");
-        trace("Going to parse: [" + s2 + "]");
-        var p = new Parser(s2);
-        exps = p.parseMany();
-        for (e in exps) {
-          trace("parsed [" + e + "]");
-        }
+        #if js
+        js.Syntax.code("window.setSource({0});", s2);
+        js.Syntax.code("window.setUpdateCallback({0});", parseCode);
+        js.Syntax.code("window.setResetCallback({0});", reset);
+        #end
 
-        trace("Env setup");
-        // Just a dummy entity, so dummy query can work.
-        // Well, could just allow query-less must-s.
-        env.interpret([], p.parseFullyFrom("(new e t)"));
+        reset();
+        parseCode(s2);
 
         trace("Loop starts");
     }

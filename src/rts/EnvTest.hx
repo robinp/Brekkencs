@@ -9,12 +9,9 @@ import parse.Parser;
 import rts.DataDefs;
 
 class DummyGfx implements NativeGfx {
-  public function new() {
-  }
-
-  public function draw(comps: Map<TypeName, Map<String, Float>>) {
-    // Pass
-  }
+  public function new() {}
+  public function clear() {}
+  public function draw(comps: Map<TypeName, Map<String, Float>>) {}
 }
 
 class EnvTest extends utest.Test {
