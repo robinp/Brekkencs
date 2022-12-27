@@ -12,76 +12,58 @@ import ast.Expr;
 import ast.Sample;
 import parse.Parser;
 
-/*
 class Main extends hxd.App {
+    static function main() {
+      new Main();
+    }
+
+    private var step: Int = 0;
+    private var env: Env;
+    private var exps: Array<Expr<ast.Context>>;
+
     override function init() {
         var tf = new h2d.Text(hxd.res.DefaultFont.get(), s2d);
         tf.text = "Hello World !";
-*/
 
-class Main {
-    static function main():Void {
-        Toolkit.init();
-        var app = new HaxeUIApp();
+        var hgfx = new HeapsGfx(s2d);
+        env = new Env(hgfx);
+        var d = new DataDef("Foobar", ["a" => true, "b" => true]);
+        var d2 = new DataDef("Baz", ["c" => true]);
+        env.addDataDef(d);
+        env.addDataDef(d2);
+        var dv = new DataDefView(d);
+        var dv2 = new DataDefView(d2);
+        var ds = new DataDefList();
+        ds.addDataDefView(dv);
+        ds.addDataDefView(dv2);
+        //app.addComponent(ds);
 
-        trace("Hello World");
+        trace(env);
+        trace(d);
+        trace(s1());
+        trace("resources:" + haxe.Resource.listNames());
+        var s2 = haxe.Resource.getString("R_s2_bk");
+        trace("Going to parse: [" + s2 + "]");
+        var p = new Parser(s2);
+        exps = p.parseMany();
+        for (e in exps) {
+          trace("parsed [" + e + "]");
+        }
 
-        app.ready(function() {
-            //app.addComponent(new MainView());
+        trace("Env setup");
+        // Just a dummy entity, so dummy query can work.
+        // Well, could just allow query-less must-s.
+        env.interpret([], p.parseFullyFrom("(new e t)"));
 
-            trace("Foo");
-            var hgfx = new HeapsGfx(cast(Screen.instance.root, h2d.Scene));
-            var env = new Env(hgfx);
-            var d = new DataDef("Foobar", ["a" => true, "b" => true]);
-            var d2 = new DataDef("Baz", ["c" => true]);
-            env.addDataDef(d);
-            env.addDataDef(d2);
-            var dv = new DataDefView(d);
-            var dv2 = new DataDefView(d2);
-            var ds = new DataDefList();
-            ds.addDataDefView(dv);
-            ds.addDataDefView(dv2);
-            //app.addComponent(ds);
+        trace("Loop starts");
+    }
 
-            trace(env);
-            trace(d);
-            trace(s1());
-            trace("resources:" + haxe.Resource.listNames());
-            var s2 = haxe.Resource.getString("R_s2_bk");
-            trace("Going to parse: [" + s2 + "]");
-            var p = new Parser(s2);
-            var exps = p.parseMany();
-            for (e in exps) {
-              trace("parsed [" + e + "]");
-            }
-
-            trace("Env setup");
-            // Just a dummy entity, so dummy query can work.
-            // Well, could just allow query-less must-s.
-            env.interpret([], p.parseFullyFrom("(new e t)"));
-
-            trace("Loop starts");
-            var step = 0;
-            var t0 = Sys.time();
-            var dt = 0.005;  // Arbitrary small initial value.
-            new haxe.ui.util.Timer(0, function() {
-                for (e in exps) {
-                  env.interpret(["delta" => LNum(dt), "step" => LNum(step)], e);
-                }
-
-                // Account time spent.
-                var t1 = Sys.time();
-                if (step++ % 100 == 0) {
-                  trace("Step ", step, "Delta ", t1-t0, "Entity count: ", env.entityCount());
-                }
-                dt = t1 - t0;
-                t0 = t1;
-            });
-            trace("Done");
-
-            trace("App starts?");
-            app.start();
-        });
-        trace("Bye world");
+    override function update(dt:Float) {
+        for (e in exps) {
+          env.interpret(["delta" => LNum(dt), "step" => LNum(step)], e);
+        }
+        if (step++ % 100 == 0) {
+          trace("Step ", step, "Delta ", dt, "Entity count: ", env.entityCount());
+        }
     }
 }
