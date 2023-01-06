@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<hbox>
-    <textfield id="textfield" text="0" />
-    <button id="deinc" text="-" />
-    <button id="inc" text="+" />
-</hbox>

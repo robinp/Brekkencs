@@ -1,10 +1,3 @@
-import haxe.ui.core.Screen;
-import haxe.ui.HaxeUIApp;
-import haxe.ui.Toolkit;
-
-import ui.DataDefView;
-import ui.DataDefList;
-
 import rts.DataDefs;
 import rts.Env;
 import rts.heaps.HeapsGfx;
@@ -12,61 +5,77 @@ import ast.Expr;
 import ast.Sample;
 import parse.Parser;
 
-/*
 class Main extends hxd.App {
+    static function main() {
+      hxd.Res.initEmbed();
+      new Main();
+    }
+
+    private var gfx: rts.NativeGfx;
+    private var env: Env;
+
+    private var step: Int = 0;
+    private var exps: Array<Expr<ast.Context>>;
+
+    private function reset() {
+      gfx.clear();
+      step = 0;
+
+      trace("Env setup");
+      env = new Env(gfx);
+      var d = new DataDef("Foobar", ["a" => true, "b" => true]);
+      var d2 = new DataDef("Baz", ["c" => true]);
+      env.addDataDef(d);
+      env.addDataDef(d2);
+    }
+
+    private function parseCode(s: String) {
+        trace("Going to parse: [" + s + "]");
+        var p = new Parser(s);
+        try {
+          exps = p.parseMany();
+          for (e in exps) {
+            trace("parsed [" + e + "]");
+          }
+        } catch (e) {
+            trace("Exception parsing", e);
+        }
+    }
+
     override function init() {
         var tf = new h2d.Text(hxd.res.DefaultFont.get(), s2d);
         tf.text = "Hello World !";
-*/
 
-class Main {
-    static function main():Void {
-        Toolkit.init();
-        var app = new HaxeUIApp();
+        /* Not bad, but multi-line edit needs some tweaks.
+        var inp = new h2d.TextInput(hxd.res.DefaultFont.get(), s2d);
+        inp.text = "Edit\nme";
+        inp.x = 5;
+        inp.y = 100;
+        inp.textColor = 0xAAAAAA;
+        */
 
-        trace("Hello World");
+        gfx = new HeapsGfx(s2d);
+        trace("resources:" + haxe.Resource.listNames());
+        var s2 = haxe.Resource.getString("R_s2_bk");
 
-        var p = new Parser("5");
-        trace("parsed: " + p.parse());
-        app.ready(function() {
-            //app.addComponent(new MainView());
+        #if js
+        js.Syntax.code("window.setSource({0});", s2);
+        js.Syntax.code("window.setUpdateCallback({0});", parseCode);
+        js.Syntax.code("window.setResetCallback({0});", reset);
+        #end
 
-            trace("Foo");
-            var hgfx = new HeapsGfx(cast(Screen.instance.root, h2d.Scene));
-            var env = new Env(hgfx);
-            var d = new DataDef("Foobar", ["a" => true, "b" => true]);
-            var d2 = new DataDef("Baz", ["c" => true]);
-            env.addDataDef(d);
-            var dv = new DataDefView(d);
-            var dv2 = new DataDefView(d2);
-            var ds = new DataDefList();
-            ds.addDataDefView(dv);
-            ds.addDataDefView(dv2);
-            //app.addComponent(ds);
+        reset();
+        parseCode(s2);
 
-            trace(env);
-            trace(d);
-            trace(s1());
-            var r = REntField(mkName("a"), mkName("Baz"), mkName("c"));
-            trace(env.interpret(
-                ["a" => LEntity(7)],
-                EEffect(
-                FSet(r,
-                                EBinop(BAdd,
-                                ERef(r),
-                                ELit(LNum(2.7)))
-                                ),
-                ERef(r))));
+        trace("Loop starts");
+    }
 
-            trace("Set timer");
-            new haxe.ui.util.Timer(0, function() {
-                trace(env.interpret(["delta" => LNum(3.0)], s1()));
-            });
-            trace("Done");
-
-            trace("App starts?");
-            app.start();
-        });
-        trace("Bye world");
+    override function update(dt:Float) {
+        for (e in exps) {
+          env.interpretSystem(["delta" => LNum(dt), "step" => LNum(step)], e);
+        }
+        if (step++ % 100 == 0) {
+          trace("Step ", step, "Delta ", dt, "Entity count: ", env.entityCount());
+        }
     }
 }

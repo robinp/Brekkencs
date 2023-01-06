@@ -4,12 +4,38 @@
     <meta charset="utf-8"/>
     <title>dev-shell</title>
     <style>
-        body { margin:0;padding:0;background-color:black; }
-        canvas#webgl { width:100%;height:100%; } 
+        body { margin:0;padding:0;background-color:blue; }
+        canvas#webgl { width:50%; }
     </style>
 </head>
 <body>
-    <canvas id="webgl"></canvas>
+    <div style="display:flex; flex-direction: row; width: 100%; height: 100%;">
+      <canvas id="webgl" style="flex-grow: 1;"></canvas>
+      <div style="display: flex; flex-grow: 1; width: 30vw; height: 100%; flex-direction: column">
+        <textarea id="srcarea" style="height: 80vw; flex-grow: 1"></textarea>
+        <button id="update" style="height: 20px;">Update</button>
+        <button id="reset" style="height: 20px;">Reset</button>
+      </div>
+    </div>
+    <script type="text/javascript">
+      function setSource(s) {
+        let srcarea = document.getElementById('srcarea');
+        srcarea.value = s;
+      }
+      function setUpdateCallback(f) {
+        let btn = document.getElementById('update');
+        let srcarea = document.getElementById('srcarea');
+        btn.onclick = function() {
+          f(srcarea.value);
+        };
+      }
+      function setResetCallback(f) {
+        let btn = document.getElementById('reset');
+        btn.onclick = function() {
+          f();
+        };
+      }
+    </script>
     <script type="text/javascript" src="Main.js"></script>
 </body>
 </html>

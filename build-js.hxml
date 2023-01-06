@@ -2,8 +2,6 @@
 -main Main
 
 -lib heaps
--lib haxeui-core
--lib haxeui-heaps
 
 -D resourcesPath=assets
 

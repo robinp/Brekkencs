@@ -3,6 +3,7 @@ package rts;
 import rts.DataDefs;
 import rts.NativeGfx;
 import ast.Expr;
+import ast.Context;
 
 function lookupNamedEidFromEnv(ne: Map<String, Lit>, n: String): Int {
     return switch (ne[n]) {
@@ -31,6 +32,9 @@ var kArbitraryExpr = ELit(LNum(42001));
  * would be ambiguous anyway (though we don't have the semantics exactly
  * hashed out, what it would mean to access different components on different
  * branches).
+ *
+ * Note: this is also (ab?)used to let query-less must expressions cut short
+ * running a system. Kind of makes sense.
  */
 class CutToQueryException extends haxe.Exception {
     public function new() {
@@ -38,37 +42,79 @@ class CutToQueryException extends haxe.Exception {
     }
 }
 
+typedef EntitiesFields = Map<Int, Map<String, Float>>;
+
 class Env {
 
     private var dataDefs: DataDefs = emptyDataDefs();
 
-    // The leaf field map should refer to the same instance.
-    private var compEntityFields: Map<TypeName, Map<Int, Map<String, Float>>> = [];
+    private var autoRegisterComponents: Bool = true;
+
+    // The leaf field map should refer to the same map instance.
+    private var compEntityFields: Map<TypeName, EntitiesFields> = [];
     private var entityCompFields: Map<Int, Map<TypeName, Map<String, Float>>> = [];
+    private var nextEntityId: Int = 0;
 
     // Provides drawing capability on the specific platform.
     private var nativeGfx: NativeGfx;
 
     public function new(ngfx: NativeGfx) {
         this.nativeGfx = ngfx;
-        // Move below out to Main or something.
-        var fBaz = ["c" => 0.5];
-        var fPos = ["x" => 70.0, "y" => 50.0];
-        compEntityFields["Baz"] = [7 => fBaz];
-        compEntityFields["Pos"] = [7 => fPos];
-        entityCompFields[7] = [
-            "Baz" => fBaz,
-            "Pos" => fPos,
-        ];
+    }
+
+    // To some generic stats later as needed.
+    public function entityCount(): Int {
+      return nextEntityId;
+    }
+
+    public function addEntity(): Int {
+      // Overflow not handled...
+      var eid = nextEntityId++;
+      entityCompFields[eid] = new Map();
+      return eid;
     }
 
     public function addDataDef(d: DataDef) {
         dataDefs[d.name] = d;
+        compEntityFields[d.name] = new Map();
     }
 
-    public function interpret(nameEnv: Map<String, Lit>, e: Expr): Expr {
+    inline private function ensureComponentAndGetEntitiesFields(c: String): EntitiesFields {
+      var efs = compEntityFields[c];
+      if (efs == null) {
+        if (autoRegisterComponents) {
+          // TODO What about dataDefs?
+          efs = compEntityFields[c] = new Map();
+        } else {
+          throw new haxe.Exception("Component [" + c + "] doesn't exist and auto-registration is off");
+        }
+      }
+      return efs;
+    }
+
+    /**
+     * Compared to plain 'interpret', swallows 'CutToQueryException' to let
+     * cutting system execution short.
+     */
+    public function interpretSystem(nameEnv: Map<String, Lit>, e: Expr<Context>): Expr<Context> {
+      try {
+        return interpret(nameEnv, e);
+      } catch (e: CutToQueryException) {
+        return kArbitraryExpr;
+      }
+    }
+
+    public function interpret(nameEnv: Map<String, Lit>, e: Expr<Context>): Expr<Context> {
         return switch (e) {
             case ELit(_): e;
+            case EBindNewEntity(n, ke):
+                // TODO: how does this interact with ongoing query?
+                //   new entities should only be available for query...
+                //   ..acconding to the scheduling. Which is..
+                var eid = addEntity();
+                // TODO(nameenv): save previous? etc.
+                nameEnv[n.name] = LEntity(eid);
+                interpret(nameEnv, ke);
             case ERef(r):
                 switch(r) {
                 case REntField(en, cn, fn):
@@ -81,7 +127,15 @@ class Env {
                     // E: name missing
                     var eid = lookupNamedEidFromEnv(nameEnv, en.name);
                     var ctab = compEntityFields[cn.name];
-                    if (ctab == null) throw new haxe.Exception("Unknown component: " + cn.name);
+                    if (ctab == null) {
+                      if (autoRegisterComponents) {
+                        // If we allow components to be late-registered, then
+                        // we must be lenient with component access too.
+                        throw new CutToQueryException();
+                      } else {
+                        throw new haxe.Exception("Unknown component: " + cn.name);
+                      }
+                    }
                     var eComp = ctab[eid];
                     if (eComp == null) {
                         throw new CutToQueryException();
@@ -116,13 +170,25 @@ class Env {
                 case [ELit(LNum(n1)), ELit(LNum(n2))]:
                     switch op {
                     case BAdd: ELit(LNum(n1 + n2));
+                    case BSub: ELit(LNum(n1 - n2));
+                    case BMul: ELit(LNum(n1 * n2));
+                    case BDiv: ELit(LNum(n1 / n2));
                     case BLt: ELit(LBool(n1 < n2));
-                    case _: throw new haxe.Exception("Unimplemented binop" + op);
+                    case BGt: ELit(LBool(n1 > n2));
+                    case BEq: ELit(LBool(n1 == n2));  // Precision, in case numbers?
+                    case BNe: ELit(LBool(n1 != n2));
+                    case _: throw new haxe.Exception("Unimplemented num binop" + op);
                     }
                 case [ELit(LBool(b1)), ELit(LBool(b2))]:
                     switch op {
                     case BEq: ELit(LBool(b1 == b2));
-                    case _: throw new haxe.Exception("Unimplemented binop" + op);
+                    case _: throw new haxe.Exception("Unimplemented bool binop" + op);
+                    }
+                case [ELit(LEntity(n1)), ELit(LEntity(n2))]:
+                    switch op {
+                    case BEq: ELit(LBool(n1 == n2));
+                    case BNe: ELit(LBool(n1 != n2));
+                    case _: throw new haxe.Exception("Unimplemented entity binop" + op);
                     }
                 case _: throw new haxe.Exception("Can't mix operand types in expr, or unsupported binop for types, or not literals");
                 }
@@ -135,9 +201,28 @@ class Env {
                         // TODO error handlings
                         // E: missing name
                         var eid = lookupNamedEidFromEnv(nameEnv, en.name);
+
                         // E: component doesn't exist?
-                        //   Should we eventually auto-create (with field defaulting)?
-                        compEntityFields[cn.name][eid][fn.name] = assertAsNum(ei);
+                        var efs = ensureComponentAndGetEntitiesFields(cn.name);
+                        var fs = efs[eid];
+                        var entityHadComponentAlready = true;
+                        if (fs == null) {
+                          // TODO properly create all fields from datadef
+                          fs = efs[eid] = new Map();
+                          entityHadComponentAlready = false;
+                        }
+                        // TODO bool, other? Or actually check datadef?
+                        fs[fn.name] = assertAsNum(ei);
+
+                        var cfs = entityCompFields[eid];
+                        var fs2 = cfs[cn.name];
+                        if (fs2 == null) {
+                          if (!entityHadComponentAlready) {
+                            cfs[cn.name] = fs;
+                          } else {
+                            throw new haxe.Exception("Programming error: compEntityFields was present but entityCompFields was not: comp[" + cn.name + "] eid[" + eid + "]");
+                          }
+                        }
                     case REntComp(_, _):
                         throw new haxe.Exception("Setting component on entity is not yet implemented");
                     case REntOrLocal(_):
@@ -155,9 +240,12 @@ class Env {
                     }
                 }
                 interpret(nameEnv, ke);
-            case EBindQuery(n, ke):
+            case EBindQuery(ann, n, ke):
                 // For now mutate the nameEnv. We might want an immutabel version
                 // later? Or only while in interactive/debug mode?
+                // TODO(nameenv): unify handling of this.
+                //   More a matter when we would have restricted scopes, which
+                //   we now don't have.
                 var prev = nameEnv[n.name];
                 // Let's query the entities, and bind each in succession to the name
                 // while executing the inner expression.
@@ -191,7 +279,7 @@ class Env {
                 // see when we have funcalls. So supporting at AST level, unless
                 // some good reason, seems a bit overblown?)
                 res;
-            case EQueryCtrl(c, ke):
+            case EQueryCtrl(_ctx, c, ke):
                 switch c {
                     case QFilter(ce):
                         // Note: should we enforce purit of control expressions?
@@ -212,7 +300,7 @@ class Env {
     }
 }
 
-function assertAsNum(e: Expr): Float {
+function assertAsNum(e: Expr<Context>): Float {
     return switch e {
         case ELit(LNum(n)): n;
         case _: throw new haxe.Exception("Expected number, got: " + e);

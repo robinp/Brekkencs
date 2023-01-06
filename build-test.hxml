@@ -1,0 +1,4 @@
+-cp src
+-main Test
+-lib utest
+-hl out/Test.hl

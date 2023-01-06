@@ -14,6 +14,10 @@ class HeapsGfx implements NativeGfx {
         trace("S2D dims", s2d.width, s2d.height);
     }
 
+    public function clear(): Void {
+      gfx.clear();
+    }
+
     public function draw(comps: Map<TypeName, Map<String, Float>>): Void {
         // Check things
         // Option to indicate error on return? Or should communicate that on
@@ -23,9 +27,9 @@ class HeapsGfx implements NativeGfx {
         var p = comps["Pos"];
         var x = p["x"];
         var y = p["y"];
-        trace("Going to draw at ", x, y);
+        //trace("Going to draw at ", x, y);
         gfx.setColor(0xFF0044);
-        gfx.beginFill(0x00FFDD);
+        gfx.beginFill(0x804FDD);
         gfx.drawCircle(x, y, 3.0);
         gfx.endFill();
     }
