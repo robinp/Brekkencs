@@ -119,6 +119,18 @@ class ParserTest extends utest.Test {
     Assert.raises(() -> { doParse("(set e.Pos.x 5)"); });
   }
 
+  function testCantParseWeirdExpr() {
+    // Badly parses into: EBinop(BAdd,EBinop(BAdd,ELit(LNum(1)),ELit(LNum(2))),ELit(LNum(3)))
+    // Should instead be error.
+    Assert.same(ERef(REntOrLocal(mkName(""))), doParse("(+ + 1 2 3)"));
+  }
+
+  function testAggSum() {
+    Assert.same(EQueryAgg(new Context(0), AggSum,
+                  EBindQuery(new Context(1), mkName("x"), ELit(LNum(1)))),
+                doParse("(sum (query x 1))"));
+  }
+
   private function doParse(s: String): Expr<Context> {
     var p = new Parser(s);
     var r = p.parse();

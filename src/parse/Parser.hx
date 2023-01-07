@@ -53,6 +53,8 @@ class Parser {
     return res;
   }
 
+  // TODO to plumb this through
+  //public function parse(tokpos: Int): Expr<Context> {
   public function parse(): Expr<Context> {
     skipSpaces();
     assertNotOver();
@@ -76,7 +78,10 @@ class Parser {
     if (tok == "f") {
       return ELit(LBool(false));
     }
-    // TODO assert this is the first token in sexp (why btw?)
+    // TODO assert this is the first token in sexp.
+    // Because only then does it make sense to parse the following two
+    // expressions (otherwise would need to treat it as something like a
+    // partial function or such, which we don't support now).
     var mbBinop  = parseBinop(tok);
     if (mbBinop != null) {
       var e1 = parse();
