@@ -8,7 +8,7 @@ import ast.Context;
 function lookupNamedEidFromEnv(ne: Map<String, Lit>, n: String): Int {
     return switch (ne[n]) {
         case LEntity(eid): eid;
-        case e: throw new haxe.Exception("not an entitiy ref for '" + n + "', value is '" + e + "'");
+        case e: throw new haxe.Exception("not an entity ref for '" + n + "', value is '" + e + "'");
     }
 }
 
@@ -52,7 +52,9 @@ class Env {
 
     // The leaf field map should refer to the same map instance.
     private var compEntityFields: Map<TypeName, EntitiesFields> = [];
-    private var entityCompFields: Map<Int, Map<TypeName, Map<String, Float>>> = [];
+    private var entities: Map<Int, Bool> = [];
+    // Because Map doesn't have size op.
+    private var theEntityCount: Int = 0;
     private var nextEntityId: Int = 0;
 
     // Provides drawing capability on the specific platform.
@@ -64,13 +66,14 @@ class Env {
 
     // To some generic stats later as needed.
     public function entityCount(): Int {
-      return nextEntityId;
+      return theEntityCount;
     }
 
     public function addEntity(): Int {
-      // Overflow not handled...
+      // TODO Overflow not handled...
       var eid = nextEntityId++;
-      entityCompFields[eid] = new Map();
+      entities[eid] = true;
+      theEntityCount++;
       return eid;
     }
 
@@ -214,15 +217,6 @@ class Env {
                         // TODO bool, other? Or actually check datadef?
                         fs[fn.name] = assertAsNum(ei);
 
-                        var cfs = entityCompFields[eid];
-                        var fs2 = cfs[cn.name];
-                        if (fs2 == null) {
-                          if (!entityHadComponentAlready) {
-                            cfs[cn.name] = fs;
-                          } else {
-                            throw new haxe.Exception("Programming error: compEntityFields was present but entityCompFields was not: comp[" + cn.name + "] eid[" + eid + "]");
-                          }
-                        }
                     case REntComp(_, _):
                         throw new haxe.Exception("Setting component on entity is not yet implemented");
                     case REntOrLocal(_):
@@ -240,7 +234,7 @@ class Env {
                 // Let's query the entities, and bind each in succession to the name
                 // while executing the inner expression.
                 var res = kArbitraryExpr;
-                for (eid in entityCompFields.keys()) {
+                for (eid in entities.keys()) {
                     nameEnv[n.name] = LEntity(eid);
                     try {
                         res = interpret(nameEnv, ke);
