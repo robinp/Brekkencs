@@ -16,6 +16,8 @@ class Main extends hxd.App {
     private var step: Int = 0;
     private var exps: Array<Expr<ast.Context>>;
 
+    private var sysMouseUpdate: Expr<ast.Context>;
+
     private function reset() {
       gfx.clear();
       step = 0;
@@ -26,6 +28,15 @@ class Main extends hxd.App {
       var d2 = new DataDef("Baz", ["c" => true]);
       env.addDataDef(d);
       env.addDataDef(d2);
+
+      // TODO check if mouse entity was deleted and push it back in each
+      //   step... once we have deletion.
+      var p = new Parser("");
+      var sysMouseInit = p.parseFullyFrom("(new e (set e.Mouse.x 0 (set e.Mouse.y 0 (set e.Mouse.pressed 0 (set e.Mouse.dummy 1 t)))))");
+      env.interpretSystem([], sysMouseInit);
+
+      // TODO some constraint that entity has given comp.
+      sysMouseUpdate = p.parseFullyFrom("(query e (must (> e.Mouse.dummy 0) (set e.Mouse.x mx (set e.Mouse.y my t))))");
     }
 
     private function parseCode(s: String) {
@@ -70,10 +81,15 @@ class Main extends hxd.App {
     }
 
     override function update(dt:Float) {
+        // Input updates
+        env.interpretSystem(["mx" => LNum(s2d.mouseX), "my" => LNum(s2d.mouseY)], sysMouseUpdate);
+        // Logic
         for (e in exps) {
           env.interpretSystem(["delta" => LNum(dt), "step" => LNum(step)], e);
         }
+        // Output and other effects
         env.draw();
+        // Some debug
         if (step++ % 100 == 0) {
           trace("Step ", step, "Delta ", dt, "Entity count: ", env.entityCount());
         }
