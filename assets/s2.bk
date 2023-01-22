@@ -5,7 +5,8 @@
         (set e.Vel.x 0
           (set e.Vel.y 0
             (set e.Draw.enabled 1
-              t)))))))
+              (set e.Gravy.enabled 1
+                t))))))))
 
 (query m
   (must (> m.Mouse.x 100)
@@ -25,7 +26,8 @@
     t))
 
 (query a
-  (query b
-    (must (!= a b)
-      (set a.Vel.x (+ a.Vel.x (* 0.01 (- b.Pos.x a.Pos.x)))
-        t))))
+  (must (> a.Gravy.enabled 0)
+    (query b
+        (must (!= a b)
+          (set a.Vel.x (+ a.Vel.x (* 0.01 (- b.Pos.x a.Pos.x)))
+            t)))))
