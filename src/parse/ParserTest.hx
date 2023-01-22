@@ -81,13 +81,6 @@ class ParserTest extends utest.Test {
                 doParse("(set x 5 t)"));
   }
 
-  function testEffectNativeCall() {
-    Assert.same(EEffect(
-                  FNative(NDraw(ERef(REntOrLocal(mkName("x"))))),
-                  ELit(LBool(true))),
-                doParse("(draw! x t)"));
-  }
-
   function testBindNewEntity() {
     Assert.same(EBindNewEntity(mkName("x"), ELit(LBool(true))),
                 doParse("(new x t)"));
@@ -95,7 +88,7 @@ class ParserTest extends utest.Test {
 
 
   function testTooManyArgs() {
-    Assert.raises(() -> { doParse("(draw! x t toomany)"); });
+    Assert.raises(() -> { doParse("(set x.Foo.bar t one toomany)"); });
     Assert.raises(() -> { doParse("(foo bar)"); });
   }
 
@@ -104,7 +97,7 @@ class ParserTest extends utest.Test {
   }
 
   function testRegressionCanParse() {
-    doParse("(set e.Pos.y (+ e.Pos.y delta) (draw! e t))");
+    doParse("(set e.Pos.y (+ e.Pos.y delta) (set x.Foo.bar e t))");
     Assert.isTrue(true);
   }
 

@@ -47,7 +47,6 @@ enum Effect<A> {
     FSet(r: Ref, e: Expr<A>);  // When? Deal with scheduling later..
     // FDelEnt
     // FDelComp
-    FNative(nc: NativeCall<A>);
 }
 
 // Not sure if there should be phases to this rather.
@@ -93,12 +92,6 @@ enum Ref {
 enum QueryCtrl<A> {
     QFilter(e: Expr<A>);
     // sort etc
-}
-
-enum NativeCall<A> {
-    // Not sure we want to list them all on AST level.
-    // Rather have some way for env to register these with their arities or so.
-    NDraw(e: Expr<A>);  // resolving to an entity ref
 }
 
 class Name {

@@ -228,16 +228,6 @@ class Env {
                     case REntOrLocal(_):
                         throw new haxe.Exception("Setting local/ent is not a valid effect");
                     }
-                case FNative(nc):
-                    switch nc {
-                    case NDraw(e):
-                        var ei = interpret(nameEnv, e);
-                        switch ei {
-                        case ELit(LEntity(eid)):
-                            nativeGfx.draw(entityCompFields.get(eid));
-                        case _: throw new haxe.Exception("Need entity literal for !draw, got: " + ei);
-                        }
-                    }
                 }
                 interpret(nameEnv, ke);
             case EBindQuery(ann, n, ke):
@@ -297,6 +287,16 @@ class Env {
                 }
             case e: throw new haxe.Exception("Unimplemented expression: " + e);
         }
+    }
+
+    public function draw(): Void {
+      //typedef EntitiesFields = Map<Int, Map<String, Float>>;
+      //private var compEntityFields: Map<TypeName, EntitiesFields> = [];
+      var posComp = compEntityFields["Pos"];
+      for (eid in compEntityFields["Draw"].keys()) {
+        var fs = posComp[eid];
+        nativeGfx.draw(fs["x"], fs["y"]);
+      }
     }
 }
 

@@ -2,7 +2,6 @@ import rts.DataDefs;
 import rts.Env;
 import rts.heaps.HeapsGfx;
 import ast.Expr;
-import ast.Sample;
 import parse.Parser;
 
 class Main extends hxd.App {
@@ -74,6 +73,7 @@ class Main extends hxd.App {
         for (e in exps) {
           env.interpretSystem(["delta" => LNum(dt), "step" => LNum(step)], e);
         }
+        env.draw();
         if (step++ % 100 == 0) {
           trace("Step ", step, "Delta ", dt, "Entity count: ", env.entityCount());
         }

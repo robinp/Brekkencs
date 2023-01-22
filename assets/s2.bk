@@ -4,13 +4,13 @@
       (set e.Pos.y 20
         (set e.Vel.x 0
           (set e.Vel.y 0
-            t))))))
+            (set e.Draw.enabled 1
+              t)))))))
 
 (query e
   (must (< e.Pos.y 400)
     (set e.Pos.y (+ e.Pos.y (* 10 delta))
-      (draw! e
-        t))))
+       t)))
 
 (query e
   (set e.Pos.x (+ e.Pos.x (* e.Vel.x delta))

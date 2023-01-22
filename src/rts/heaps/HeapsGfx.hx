@@ -18,15 +18,7 @@ class HeapsGfx implements NativeGfx {
       gfx.clear();
     }
 
-    public function draw(comps: Map<TypeName, Map<String, Float>>): Void {
-        // Check things
-        // Option to indicate error on return? Or should communicate that on
-        // a side-channel with RTS / env? Depends if it is any useful for the
-        // AST / interpreter to know about the error on the spot. Probably
-        // not immediately useful.
-        var p = comps["Pos"];
-        var x = p["x"];
-        var y = p["y"];
+    public function draw(x: Float, y: Float): Void {
         //trace("Going to draw at ", x, y);
         gfx.setColor(0xFF0044);
         gfx.beginFill(0x804FDD);
