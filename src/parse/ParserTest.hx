@@ -119,9 +119,16 @@ class ParserTest extends utest.Test {
     Assert.raises(() -> { doParse("(set e.Pos.x 5)"); });
   }
 
+  function testCantParseWeirdExpr() {
+    // Bad if parses into:
+    //EBinop(BAdd,EBinop(BAdd,ELit(LNum(1)),ELit(LNum(2))),ELit(LNum(3)))
+    Assert.raises(() -> doParse("(+ + 1 2 3)"));
+    Assert.raises(() -> doParse("(+ query x 1 5)"));
+  }
+
   private function doParse(s: String): Expr<Context> {
     var p = new Parser(s);
-    var r = p.parse();
+    var r = p.parseTop();
     if (!p.atEnd()) {
       throw new haxe.Exception("parsed [" + r + "] but didn't consume full input");
     }

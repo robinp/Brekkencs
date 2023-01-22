@@ -29,7 +29,7 @@ class Parser {
     while (pos < s.length) {
       skipSpaces();
       if (pos < s.length) {
-        var e = parse();
+        var e = parse(0);
         res.push(e);
       }
     }
@@ -41,7 +41,7 @@ class Parser {
     var prevPos = pos;
     s = ins;
     pos = 0;
-    var res = parse();
+    var res = parse(0);
     var wasFullParse = atEnd();
     // Restore
     s = prevS;
@@ -53,16 +53,19 @@ class Parser {
     return res;
   }
 
-  public function parse(): Expr<Context> {
+  public function parseTop(): Expr<Context> {
+    return parse(0);
+  }
+
+  private function parse(tokpos: Int): Expr<Context> {
     skipSpaces();
     assertNotOver();
     if (curChar() == P_OPEN) {
       pos += 1;
-      var e = parse();
+      var e = parse(0);
       skipSpaces();
       if (curChar() != P_CLOSE) {
-        throw new haxe.Exception("Expected ) at pos " + pos + ", context: ["
-          + s.substring(Math.round(Math.max(0, pos-25)), pos));
+        throw new haxe.Exception("Expected ) " + errorContext());
       }
       pos += 1;
       return e;
@@ -76,47 +79,55 @@ class Parser {
     if (tok == "f") {
       return ELit(LBool(false));
     }
-    // TODO assert this is the first token in sexp (why btw?)
+
     var mbBinop  = parseBinop(tok);
     if (mbBinop != null) {
-      var e1 = parse();
-      var e2 = parse();
+      // Assert this is the first token in sexp.
+      // Because only then does it make sense to parse the following two
+      // expressions (otherwise would need to treat it as something like a
+      // partial function or such, which we don't support now).
+      if (tokpos != 0) {
+        throw new haxe.Exception("Binop [" + tok + "] found in non-operator position " + errorContext());
+      }
+      var e1 = parse(1);
+      var e2 = parse(2);
       return EBinop(mbBinop, e1, e2);
     }
+
     var fOrNan = Std.parseFloat(tok);
     if (!Math.isNaN(fOrNan)) {
       return ELit(LNum(fOrNan));
     }
-    // TODO assert this is the first token in sexp.
-    if (tok == "query") {
+
+    if (matchAndAssertInitialToken(tokpos, tok, "query")) {
       var n = parseName();
-      var e = parse();
+      var e = parse(1);
       return EBindQuery(genContext(), n, e);
     }
-    if (tok == "new") {
+    if (matchAndAssertInitialToken(tokpos, tok, "new")) {
       var n = parseName();
-      var e = parse();
+      var e = parse(1);
       return EBindNewEntity(n, e);
     }
-    if (tok == "must") {
-      var e1 = parse();
-      var e2 = parse();
+    if (matchAndAssertInitialToken(tokpos, tok, "must")) {
+      var e1 = parse(1);
+      var e2 = parse(2);
       return EQueryCtrl(genContext(), QFilter(e1), e2);
     }
-    if (tok == "set") {
-      var e1 = parse();
+    if (matchAndAssertInitialToken(tokpos, tok, "set")) {
+      var e1 = parse(1);
       switch (e1) {
         case ERef(r):
-          var e2 = parse();
-          var e3 = parse();
+          var e2 = parse(2);
+          var e3 = parse(3);
           return EEffect(FSet(r, e2), e3);
         default:
           throw new haxe.Exception("expected reference arg to set around " + pos);
       }
     }
-    if (tok == "draw!") {
-      var e1 = parse();
-      var e2 = parse();
+    if (matchAndAssertInitialToken(tokpos, tok, "draw!")) {
+      var e1 = parse(1);
+      var e2 = parse(2);
       return EEffect(FNative(NDraw(e1)), e2);
     }
 
@@ -220,5 +231,19 @@ class Parser {
 
   private function curChar(): String {
     return s.charAt(pos);
+  }
+
+  private function errorContext(): String {
+    return "at pos " + pos + ", context: [" + s.substring(Math.round(Math.max(0, pos-25)), pos) + "...]";
+  }
+
+  private function matchAndAssertInitialToken(tokpos: Int, tok: String, s: String) {
+    if (tok != s) {
+      return false;
+    }
+    if (tokpos != 0) {
+      throw new haxe.Exception("Token [" + tok + "] found in non-initial position in sexp " + errorContext());
+    }
+    return true;
   }
 }

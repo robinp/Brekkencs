@@ -87,7 +87,7 @@ class EnvTest extends utest.Test {
 
   private function doParse(s: String): Expr<Context> {
     var p = new Parser(s);
-    var r = p.parse();
+    var r = p.parseTop();
     if (!p.atEnd()) {
       throw new haxe.Exception("parsed [" + r + "] but didn't consume full input");
     }

@@ -7,6 +7,7 @@ enum Expr<A> {
     EEffect(eff: Effect<A>, ke: Expr<A>);
     EQueryCtrl(ann: A, c: QueryCtrl<A>, ke: Expr<A>);
     EBindQuery(ann: A, n: Name, ke: Expr<A>);
+    //EQueryAgg(ann: A, op: Agg, ke: Expr<A>);
     EBindNewEntity(n: Name, ke: Expr<A>);
     // EBind
 }
@@ -32,6 +33,13 @@ enum Binop {
     // Overloaded
     BEq;
     BNe;
+}
+
+enum Agg {
+    AggCount;
+    AggSum;
+    AggMax;
+    AggMin;
 }
 
 enum Effect<A> {
