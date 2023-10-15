@@ -2,19 +2,7 @@
 
 let
   ocamlDependencies = version:
-    if lib.versionAtLeast version "4.3"
-    then with ocaml-ng.ocamlPackages_5_0; [
-      ocaml
-      findlib
-      sedlex
-      xml-light
-      ptmap
-      camlp5
-      sha
-      dune_3
-      luv
-      extlib
-    ] else if lib.versionAtLeast version "4.2"
+    if lib.versionAtLeast version "4.2"
     then with ocaml-ng.ocamlPackages_4_12; [
       ocaml
       findlib
@@ -139,9 +127,14 @@ in {
     version = "4.2.5";
     sha256 = "sha256-Y0gx6uOQX4OZgg8nK4GJxRR1rKh0S2JUjZQFVQ4cfTs=";
   };
+  # We use this as 4.2.4 and 4.2.5 were allegedly buggy in some way for us.
+  haxe_4_2_3 = generic {
+    version = "4.2.3";
+    sha256 = "sha256-vycMYArmkHTQRGCPAdKlYkOMTpAokgtMBe1F9XrrhkQ=";
+  };
+  # This needs ocaml 5 and a rabbithole.
   haxe_4_3 = generic {
     version = "4.3.2";
     sha256 = "sha256-wSSX9d/WBzylQ+XYhjM/qpdAXtMNDoQUIWRPL/2AnMo=";
   };
-
 }
