@@ -1,8 +1,20 @@
-{ lib, stdenv, fetchFromGitHub, coreutils, ocaml-ng, zlib, pcre, neko, mbedtls_2, Security }:
+{ lib, stdenv, fetchFromGitHub, coreutils, ocaml-ng, zlib, pcre, neko, mbedtls_2 }:
 
 let
   ocamlDependencies = version:
-    if lib.versionAtLeast version "4.2"
+    if lib.versionAtLeast version "4.3"
+    then with ocaml-ng.ocamlPackages_5_0; [
+      ocaml
+      findlib
+      sedlex
+      xml-light
+      ptmap
+      camlp5
+      sha
+      dune_3
+      luv
+      extlib
+    ] else if lib.versionAtLeast version "4.2"
     then with ocaml-ng.ocamlPackages_4_12; [
       ocaml
       findlib
@@ -39,7 +51,6 @@ let
 
       buildInputs = [ zlib pcre neko ]
         ++ lib.optional (lib.versionAtLeast version "4.1") mbedtls_2
-        ++ lib.optional (lib.versionAtLeast version "4.1" && stdenv.isDarwin) Security
         ++ ocamlDependencies version;
 
       src = fetchFromGitHub {
@@ -85,7 +96,7 @@ let
         done
       '';
 
-      setupHook = ./setup-hook.sh;
+      setupHook = ./haxe-setup-hook.sh;
 
       dontStrip = true;
 
@@ -128,4 +139,9 @@ in {
     version = "4.2.5";
     sha256 = "sha256-Y0gx6uOQX4OZgg8nK4GJxRR1rKh0S2JUjZQFVQ4cfTs=";
   };
+  haxe_4_3 = generic {
+    version = "4.3.2";
+    sha256 = "sha256-wSSX9d/WBzylQ+XYhjM/qpdAXtMNDoQUIWRPL/2AnMo=";
+  };
+
 }
