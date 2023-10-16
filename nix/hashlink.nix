@@ -18,13 +18,12 @@
 
 stdenv.mkDerivation rec {
   pname = "hashlink";
-  version = "2be3f7a9e633cd8f820a632c8517f72ec6db75e0";
+  version = "1.13.0";
 
   src = fetchFromGitHub {
     owner = "HaxeFoundation";
     repo = "hashlink";
     rev = version;
-    # sha256 = "Mw0AMPK4fdaAdq+BjnFDpo0B9qhTrecD8roLA/JF/a0=";
     sha256 = "lpHW0JWxbLtOBns3By56ZBn47CZsDzwOFBuW9MlERrE=";
   };
 

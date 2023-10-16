@@ -4,8 +4,6 @@
 with pkgs;
 with {
   hl = callPackage ./nix/hashlink.nix {};
-  #hlSrc = callPackage ./nix/hashlink-sources.nix {};
-  #hl = hashlink;
   haxe = callPackage ./nix/haxe.nix {};
 };
 stdenv.mkDerivation {
