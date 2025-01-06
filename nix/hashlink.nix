@@ -18,14 +18,14 @@
 
 stdenv.mkDerivation rec {
   pname = "hashlink";
-  version = "2be3f7a9e633cd8f820a632c8517f72ec6db75e0";
+  version = "c9c4c8b1180375bfed2a4a4b14ecc518d06f3870";
 
   src = fetchFromGitHub {
     owner = "HaxeFoundation";
     repo = "hashlink";
     rev = version;
     # sha256 = "Mw0AMPK4fdaAdq+BjnFDpo0B9qhTrecD8roLA/JF/a0=";
-    sha256 = "lpHW0JWxbLtOBns3By56ZBn47CZsDzwOFBuW9MlERrE=";
+    sha256 = "oEzMKyAmwc8wQBpicj2G9/z/lSl7G3N0s3qv2hww0VA=";
   };
 
   buildInputs = [ libpng libjpeg_turbo libvorbis openal SDL2 mbedtls libuv libGL libGLU pcre sqlite ];

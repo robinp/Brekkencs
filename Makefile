@@ -8,6 +8,8 @@
 
 setup:
 	haxelib install utest
+	# Due to recent rename of thing to format.hl.Native, not yet releasen on haxelib, and needed by master heaps.
+	haxelib git format https://github.com/HaxeFoundation/format
 	haxelib git heaps https://github.com/HeapsIO/heaps
 	# Note: installing from libs is not advised for these specific libs,
 	# as they get stale quickly. Would be nice to pin the git versions though.
@@ -19,10 +21,7 @@ setup:
 	# Git version needed since new heaps would refer some new APIs.
 	#
 	#haxelib install hlsdl
-	# note: no idea how to use the subpath, so just pointed to hashlink and
-	# manually bodged it. Would be better to prefetch with nix, and then
-	# configure haxelib to point to that directly.
-	haxelib git hlsdl https://github.com/HaxeFoundation/hashlink/tree/master/libs/sdl
+	haxelib git hlsdl https://github.com/HaxeFoundation/hashlink master libs/sdl
 
 devshell-hashlink:
 	nix-shell -E 'with import <nixpkgs> { }; callPackage ./nix/hashlink.nix { }'
